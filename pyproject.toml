@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cwidgets"
+version = "0.1.0a1"
+description = "Accessible custom widgets for PyQt6 and PySide6 — keyboard navigation, NVDA screen reader support, and Win32 RichEdit integration"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Mohamed Hédi Bettaieb", email = "hedidouz@gmail.com" }
+]
+keywords = ["pyqt6", "pyside6", "accessibility", "nvda", "widgets", "screenreader", "blind", "visually impaired"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Software Development :: User Interfaces",
+  "Topic :: Accessibility",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pywin32; sys_platform == 'win32'",
+]
+
+[project.urls]
+Homepage = "https://github.com/hedi-bettaieb/cwidgets"
+Repository = "https://github.com/hedi-bettaieb/cwidgets"
+Issues = "https://github.com/hedi-bettaieb/cwidgets/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+cwidgets = ["Docs/Help/*.html"]

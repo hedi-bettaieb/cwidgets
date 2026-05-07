@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aide cwidgets</title>
+<style>
+body {
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 1em;
+    line-height: 1.7;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2em;
+    background: #ffffff;
+    color: #1a1a1a;
+}
+h1 {
+    font-size: 1.6em;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 0.3em;
+    margin-top: 2em;
+}
+h2 {
+    font-size: 1.2em;
+    margin-top: 1.5em;
+}
+h3 {
+    font-size: 1em;
+    margin-top: 1.2em;
+}
+pre {
+    background: #f4f4f4;
+    border-left: 4px solid #555;
+    padding: 1em;
+    overflow-x: auto;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.92em;
+    line-height: 1.5;
+}
+ul {
+    padding-left: 1.5em;
+}
+li {
+    margin-bottom: 0.3em;
+}
+nav ul {
+    list-style: none;
+    padding-left: 0;
+}
+nav li {
+    margin-bottom: 0.4em;
+}
+nav a {
+    color: #1a1a1a;
+    text-decoration: underline;
+}
+nav a:hover {
+    color: #555;
+}
+a.retour {
+    display: inline-block;
+    margin-top: 1em;
+    font-size: 0.9em;
+    color: #555;
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<h1>cwidgets version 0.1.0a1 : </h1>
+
+<!-- ============================================================ -->
+<h1 id="introduction">Introduction</h1>
+
+<p>
+cwidgets est une librairie Python fournissant une collection de widgets Qt accessibles pour NVDA,
+conçus pour résoudre les limitations natives de Qt en matière d'accessibilité.
+Chaque composant étend un widget Qt standard en ajoutant les fonctionnalités essentielles pour les
+utilisateurs de lecteurs d'écran, tout en conservant une API familière pour les développeurs.
+</p>
+
+<p>Compatible avec PySide6 et PyQt6 :</p>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CButton, CLabel, CLineEdit, ...
+# PyQt6
+from cwidgets.pyqt6 import CButton, CLabel, CLineEdit, ...
+</pre>
+
+<!-- ============================================================ -->
+<h1>Fonctions utiles</h1>
+
+<p>
+Après installation, deux fonctions sont disponibles directement depuis le module cwidgets.
+</p>
+
+<h2>widgets() — liste des widgets disponibles</h2>
+
+<p>Affiche dans la console la liste de tous les widgets de la librairie.</p>
+
+<pre>
+import cwidgets
+cwidgets.widgets()
+
+# résultat dans la console :
+# cwidgets — available widgets:
+#   - CButton
+#   - CLabel
+#   - CLineEdit
+#   - CComboBox
+#   - CListWidget
+#   - CMessageBox
+#   - CTextEdit
+</pre>
+
+<h2>show_help() — ouvrir ce guide dans le navigateur</h2>
+
+<p>Ouvre le guide d'utilisation dans le navigateur par défaut.</p>
+
+<pre>
+import cwidgets
+
+# ouvrir le guide en français
+cwidgets.show_help()
+cwidgets.show_help(lang="fr")
+
+# ouvrir le guide en anglais
+cwidgets.show_help(lang="en")
+
+# ouvrir le guide en arabe
+cwidgets.show_help(lang="ar")
+
+# ouvrir directement la section d'un widget
+cwidgets.show_help(lang="fr", widget="CButton")
+cwidgets.show_help(lang="fr", widget="CTextEdit")
+cwidgets.show_help(lang="fr", widget="CLabel")
+cwidgets.show_help(lang="fr", widget="CLineEdit")
+cwidgets.show_help(lang="fr", widget="CComboBox")
+cwidgets.show_help(lang="fr", widget="CListWidget")
+cwidgets.show_help(lang="fr", widget="CMessageBox")
+</pre>
+
+<!-- ============================================================ -->
+<h1>Problématiques communes résolues</h1>
+
+<ul>
+<li>Zone de texte multiligne : CTextEdit résout le problème fondamental de QTextEdit, totalement inaccessible pour NVDA.</li>
+<li>Navigation vs validation : séparation des actions de navigation (flèches) et de validation (Enter/Space) pour éviter les déclenchements involontaires.</li>
+<li>Désactivation accessible : maintien de l'annonce NVDA même lorsque le widget est désactivé via setEnabled(False).</li>
+<li>Titres et labels : intégration avec CLabel pour éviter les conflits avec setAccessibleName.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h1>Liste des widgets</h1>
+
+<nav aria-label="Navigation des widgets">
+<ul>
+<li><a href="#ctextedit">CTextEdit</a></li>
+<li><a href="#clabel">CLabel</a></li>
+<li><a href="#cbutton">CButton</a></li>
+<li><a href="#clineedit">CLineEdit</a></li>
+<li><a href="#ccombobox">CComboBox</a></li>
+<li><a href="#clistwidget">CListWidget</a></li>
+<li><a href="#cmessagebox">CMessageBox</a></li>
+</ul>
+</nav>
+
+<!-- ============================================================ -->
+<h1 id="ctextedit">CTextEdit</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CTextEdit est une zone d'édition multiligne accessible, remplaçant QTextEdit.
+</p>
+
+<p>
+QTextEdit natif Qt est totalement inaccessible pour NVDA — un développeur non-voyant ne peut ni lire
+ni écrire dans une zone de texte multiligne. C'est le problème le plus bloquant de Qt pour
+l'accessibilité, sans aucune solution native. Ce problème a conduit à l'abandon des zones d'édition
+multiligne dans de nombreuses applications Qt développées par des personnes non-voyantes.
+</p>
+
+<p>
+La solution adoptée consiste à intégrer le contrôle Win32 RichEdit directement dans un QWidget Qt.
+Win32 RichEdit est nativement accessible — la complexité réside dans son intégration dans une fenêtre
+Qt tout en conservant cette accessibilité et en harmonisant le comportement avec Qt.
+</p>
+
+<p>Architecture :</p>
+<pre>
+CTextEdit (QWidget)
+    └── EditorStyle        — styles, police, couleur, alignement
+            └── RichEdit Win32  — moteur natif accessible
+</pre>
+
+<ul>
+<li>Accessibilité NVDA totale : lecture, écriture, navigation, sélection.</li>
+<li>API compatible QTextEdit : setText, toPlainText, append, clear, setReadOnly.</li>
+<li>Texte enrichi : police, taille, gras, italique, couleur, alignement.</li>
+<li>Gestion asynchrone : styles et texte en attente si le handle Win32 n'est pas encore disponible.</li>
+<li>Focus intelligent : restauration du focus au retour de l'application.</li>
+</ul>
+
+<h2>Titre visible optionnel</h2>
+
+<p>
+accessible_name est annoncé par NVDA mais invisible visuellement.
+Pour un titre visible, ajouter un CLabel au layout avant l'éditeur :
+</p>
+
+<pre>
+self.lbl    = CLabel("Zone de saisie :", self)
+self.editor = CTextEdit(self, accessible_name="Zone de saisie")
+layout.addWidget(self.lbl)
+layout.addWidget(self.editor)
+</pre>
+
+<p>Le label peut inclure un mnémonique :</p>
+
+<pre>
+self.lbl = CLabel("&amp;Zone de saisie :", self)
+</pre>
+
+<h2>Couleurs disponibles</h2>
+
+<pre>
+# noms supportés
+"black", "white", "red", "green", "blue", "yellow",
+"cyan", "magenta", "gray", "darkgray", "lightgray",
+"orange", "purple", "violet", "pink", "brown",
+"navy", "teal", "lime", "olive", "maroon",
+"coral", "salmon", "gold", "silver"
+
+# ou tuple RGB
+(255, 0, 0)    # rouge
+(0, 128, 255)  # bleu clair
+</pre>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CTextEdit
+# PyQt6
+from cwidgets.pyqt6 import CTextEdit
+
+# création
+self.editor = CTextEdit(self, accessible_name="Zone de saisie")
+layout.addWidget(self.editor)
+
+# texte
+self.editor.setText("Bonjour !")
+text = self.editor.text()
+text = self.editor.toPlainText()
+self.editor.append("Nouvelle ligne.")
+self.editor.clear()
+
+# lecture seule
+self.editor.setReadOnly(True)
+self.editor.setReadOnly(False)
+
+# police — QFont ou (str, int, bool, bool)
+self.editor.setFont("Arial", 12, True, False)  # nom, taille, gras, italique
+
+# couleurs — nom ou tuple RGB
+self.editor.setTextColor("red")
+self.editor.setTextColor((255, 0, 0))
+self.editor.setBackgroundColor("yellow")
+
+# alignement
+self.editor.setAlignment("left")
+self.editor.setAlignment("center")
+self.editor.setAlignment("right")
+</pre>
+
+<a class="retour" href="#ctextedit">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="clabel">CLabel</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CLabel est un label accessible, remplaçant QLabel.
+QLabel natif est invisible pour NVDA sauf s'il est lié à un buddy — et seulement quand ce buddy a le focus.
+</p>
+
+<p>Deux modes :</p>
+<ul>
+<li>Mode seul : StrongFocus + accessibleName — NVDA lit le label directement.</li>
+<li>Mode buddy : NoFocus sur le label, texte propagé comme accessibleName du buddy — NVDA annonce le label quand le buddy reçoit le focus.</li>
+</ul>
+
+<ul>
+<li>Nettoyage des raccourcis : &amp;Nom → "Nom" pour NVDA, mnémonique visuel Qt conservé.</li>
+<li>Préfixe : contexte textuel ajouté à l'annonce NVDA ("Statut fichier enregistré").</li>
+<li>Synchronisation automatique : setText() et setPrefix() resynchronisent NVDA sans code supplémentaire.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CLabel, CLineEdit
+# PyQt6
+from cwidgets.pyqt6 import CLabel, CLineEdit
+
+# Mode seul — NVDA lit le texte directement
+self.lbl = CLabel("Fichier enregistré", self)
+
+# Avec préfixe — NVDA annonce : "Statut fichier enregistré"
+self.lbl = CLabel("Fichier enregistré", self, prefix="Statut")
+
+# Mode buddy — NVDA annonce le label quand le champ reçoit le focus
+# le label doit être ajouté au layout avant le widget
+self.edit = CLineEdit(self)
+self.lbl  = CLabel("Nom :", self, self.edit)
+layout.addWidget(self.lbl)
+layout.addWidget(self.edit)
+
+# Mise à jour dynamique
+self.lbl.setText("traitement en cours")
+self.lbl.setPrefix("Erreur")
+</pre>
+
+<a class="retour" href="#clabel">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="cbutton">CButton</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CButton est un bouton accessible, remplaçant QPushButton.
+</p>
+
+<ul>
+<li>QPushButton natif n'accepte que Space pour l'activation — Enter et Return sont ignorés.</li>
+<li>setEnabled(False) rend le bouton invisible pour NVDA, même avec setAccessibleDescription.</li>
+</ul>
+
+<p>
+Activation étendue à Enter/Return et désactivation accessible via maintien du widget actif pour Qt
+tout en bloquant les interactions manuellement.
+</p>
+
+<ul>
+<li>Activation étendue : Space, Enter, Return, clic souris.</li>
+<li>Désactivation accessible : non cliquable + NVDA annonce "non disponible".</li>
+<li>API identique à QPushButton.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CButton
+# PyQt6
+from cwidgets.pyqt6 import CButton
+
+self.btn = CButton("Valider", self)
+self.btn.clicked.connect(self.on_click)
+
+# désactiver — NVDA annonce "non disponible", bouton non cliquable
+self.btn.setEnabled(False)
+self.btn.setEnabled(True)
+
+# modifier le titre — natif Qt
+self.btn.setText("Nouveau titre")
+
+# vérifier l'état
+if self.btn.isEnabled():
+    ...
+</pre>
+
+<a class="retour" href="#cbutton">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="clineedit">CLineEdit</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CLineEdit est un champ de saisie accessible, remplaçant QLineEdit.
+QLineEdit natif nécessite une connexion manuelle à returnPressed pour récupérer le texte validé.
+CLineEdit rend cette validation automatique via le signal validated.
+</p>
+
+<ul>
+<li>Signal validated émis avec le texte courant à chaque Enter/Return.</li>
+<li>placeholderText en paramètre — annoncé par NVDA quand le champ est vide.</li>
+<li>Titre via CLabel avec buddy.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CLineEdit, CLabel
+# PyQt6
+from cwidgets.pyqt6 import CLineEdit, CLabel
+
+# champ créé en premier pour le buddy
+self.edit = CLineEdit(self)
+self.lbl  = CLabel("Nom :", self, self.edit)
+layout.addWidget(self.lbl)
+layout.addWidget(self.edit)
+
+# avec texte initial
+self.edit = CLineEdit(self, "Paris")
+
+# avec placeholder
+self.edit = CLineEdit(self, placeholderText="Saisissez votre nom...")
+
+# signal validated
+self.edit.validated.connect(self.on_validated)
+
+def on_validated(self, text: str) -> None:
+    text = self.edit.text()  # récupération natif Qt
+
+# show / hide — natif Qt
+self.edit.hide()
+self.edit.show()
+</pre>
+
+<a class="retour" href="#clineedit">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="ccombobox">CComboBox</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CComboBox est une liste déroulante accessible, remplaçant QComboBox.
+</p>
+
+<ul>
+<li>QComboBox natif valide immédiatement la sélection lors de la navigation avec les flèches — un non-voyant ne peut pas naviguer sans déclencher une action.</li>
+<li>setEnabled(False) rend le widget muet pour NVDA.</li>
+</ul>
+
+<p>
+Séparation explicite entre navigation et validation, avec maintien de l'accessibilité en mode désactivé.
+</p>
+
+<ul>
+<li>Navigation libre : ↑ ↓ naviguent sans valider.</li>
+<li>Validation explicite : Enter, Return, Space → signal validated.</li>
+<li>Signal cleared : émis quand l'utilisateur valide sur un combo vide.</li>
+<li>Désactivation accessible : NVDA annonce "non disponible".</li>
+<li>Titre via CLabel avec buddy — setAccessibleName non recommandé car il écrase le label.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CComboBox, CLabel, CMessageBox, CButton
+# PyQt6
+from cwidgets.pyqt6 import CComboBox, CLabel, CMessageBox, CButton
+
+# combo créé en premier pour le buddy
+self.combo = CComboBox(self)
+self.combo.addItems(["France", "Belgique", "Suisse"])
+self.lbl = CLabel("Liste des pays :", self, self.combo)
+layout.addWidget(self.lbl)
+layout.addWidget(self.combo)
+
+self.combo.validated.connect(self.on_selection)
+self.combo.cleared.connect(self.on_cleared)
+
+# bouton qui vide le combo
+self.btn_vider = CButton("Vider", self)
+self.btn_vider.clicked.connect(self.combo.clear)
+
+def on_selection(self) -> None:
+    text  = self.combo.currentText()
+    index = self.combo.currentIndex()
+    CMessageBox.information(self, "Sélection", f"Pays : {text}")
+
+def on_cleared(self) -> None:
+    CMessageBox.warning(self, "Attention", "Aucun item disponible dans la liste.")
+
+# désactiver / réactiver
+self.combo.setEnabled(False)
+self.combo.setEnabled(True)
+</pre>
+
+<a class="retour" href="#ccombobox">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="clistwidget">CListWidget</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CListWidget est une liste accessible, remplaçant QListWidget.
+QListWidget natif valide immédiatement la sélection lors de la navigation avec les flèches — un non-voyant ne peut pas naviguer librement.
+</p>
+
+<p>
+Séparation entre navigation et validation, avec maintien de l'accessibilité en mode désactivé.
+</p>
+
+<ul>
+<li>Navigation libre : ↑ ↓ naviguent sans valider.</li>
+<li>Validation explicite : Enter, Return, Space → émet itemActivated natif Qt.</li>
+<li>Désactivation accessible : NVDA annonce "non disponible".</li>
+<li>Titre via CLabel avec buddy — setAccessibleName non recommandé car il écrase le label.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CListWidget, CLabel
+# PyQt6
+from cwidgets.pyqt6 import CListWidget, CLabel
+
+# liste créée en premier pour le buddy
+self.liste = CListWidget(self)
+self.liste.addItems(["France", "Belgique", "Suisse"])
+self.lbl = CLabel("Liste des pays :", self, self.liste)
+layout.addWidget(self.lbl)
+layout.addWidget(self.liste)
+
+# signal natif Qt — identique à QListWidget
+self.liste.itemActivated.connect(self.on_item)
+
+def on_item(self, item) -> None:
+    text = item.text()
+    row  = self.liste.currentRow()
+    print(row, text)
+
+# désactiver / réactiver
+self.liste.setEnabled(False)
+self.liste.setEnabled(True)
+
+# vider — natif Qt
+self.liste.clear()
+</pre>
+
+<a class="retour" href="#clistwidget">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1 id="cmessagebox">CMessageBox</h1>
+
+<h2>Définition et fonctionnalités</h2>
+
+<p>
+CMessageBox est une boîte de dialogue accessible, remplaçant QMessageBox.
+QMessageBox natif ne propose pas de fermeture automatique temporisée — utile pour les messages
+d'information ou de succès qui ne nécessitent pas d'action de l'utilisateur.
+</p>
+
+<ul>
+<li>information : modal ou temporisé — sans beep.</li>
+<li>warning : modal ou temporisé — sans beep.</li>
+<li>critical : toujours modal + beep système — fermeture manuelle obligatoire.</li>
+<li>Fermeture manuelle toujours possible avant le timeout.</li>
+</ul>
+
+<h3>Exemples</h3>
+
+<pre>
+# PySide6
+from cwidgets.pyside6 import CMessageBox
+# PyQt6
+from cwidgets.pyqt6 import CMessageBox
+
+# information modale
+CMessageBox.information(self, "Succès", "Fichier enregistré.")
+
+# information temporisée — fermeture auto après 3 secondes
+CMessageBox.information(self, "Succès", "Fichier enregistré.", timeout=3000)
+
+# avertissement modal
+CMessageBox.warning(self, "Attention", "Espace disque insuffisant.")
+
+# avertissement temporisé
+CMessageBox.warning(self, "Attention", "Connexion instable.", timeout=4000)
+
+# erreur critique — modal + beep — fermeture manuelle obligatoire
+CMessageBox.critical(self, "Erreur", "Fichier introuvable.")
+
+# timeout recommandé uniquement pour information et warning
+# timeout non disponible pour critical
+</pre>
+
+<a class="retour" href="#cmessagebox">↑ Haut de section</a>
+
+<!-- ============================================================ -->
+<h1>Bonnes pratiques</h1>
+
+<p>1 — Titres : toujours utiliser CLabel avec buddy pour les widgets interactifs.</p>
+
+<pre>
+# non recommandé — écrase le buddy
+self.combo.setAccessibleName("...")
+
+# correct
+self.lbl = CLabel("Liste des pays :", self, self.combo)
+</pre>
+
+<p>2 — Désactivation : setEnabled(False) est accessible par défaut sur tous les widgets C*.</p>
+
+<p>3 — Validation :</p>
+<ul>
+<li>CLineEdit et CComboBox → signal validated</li>
+<li>CListWidget → signal natif Qt itemActivated</li>
+</ul>
+
+<p>4 — Ordre de création avec buddy : toujours créer le widget avant son CLabel.</p>
+
+<pre>
+# correct — widget créé avant le label
+self.combo = CComboBox(self)
+self.lbl   = CLabel("Pays :", self, self.combo)
+</pre>
+
+<!-- ============================================================ -->
+<h1>Dépendances</h1>
+
+<ul>
+<li>PySide6 ou PyQt6</li>
+<li>pywin32 — uniquement pour CTextEdit (intégration Win32 RichEdit)</li>
+</ul>
+
+<p>Fournies par la librairie :</p>
+<ul>
+<li>validate_parent — vérification systématique du parent QWidget</li>
+<li>logger — journalisation des erreurs (module "cwidgets")</li>
+</ul>
+
+<!-- ============================================================ -->
+<h1>Limites</h1>
+
+<ul>
+<li>CTextEdit dépend de Win32 RichEdit — compatible Windows uniquement.</li>
+<li>setAccessibleName non recommandé avec CComboBox et CListWidget car il écrase le buddy CLabel.</li>
+<li>CButton : visuel grisé via stylesheet — Windows ne grise pas automatiquement un bouton maintenu actif pour NVDA.</li>
+</ul>
+
+<!-- ============================================================ -->
+
+<h1>Développeur</h1>
+
+<p>
+Cette librairie a été développée par <strong>[Mohamed Hédi Bettaieb]</strong>.<br>
+Date de création : <strong>[May 2026]</strong>.<br>
+Pour toute question ou suggestion, vous pouvez me contacter à [hedidouz@gmail.com].
+</p>
+
+<h1>Conclusion</h1>
+
+<p>
+Ce projet vise à rendre les applications Qt 100% accessibles pour les développeurs et utilisateurs
+non-voyants, sans sacrifier la productivité ni les habitudes des développeurs Qt.
+</p>
+
+</body>
+</html>
