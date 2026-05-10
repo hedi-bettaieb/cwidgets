@@ -19,6 +19,8 @@ from .editor_core import EditorCore
 # Logger for this module
 # ============================================================================
 logger = logging.getLogger("cwidgets")
+logger.debug(f"logger initialized in {__file__}")
+
 
 # ============================================================================
 # RichEdit constants for CHARFORMAT2

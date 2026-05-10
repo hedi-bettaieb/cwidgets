@@ -38,6 +38,8 @@ from .editor_style import EditorStyle
 from .validate_parent import validate_parent
 
 logger = logging.getLogger("cwidgets")
+logger.debug(f"logger initialized in {__file__}")
+
 
 # ============================================================================
 # Common constants

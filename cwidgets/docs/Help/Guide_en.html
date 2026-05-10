@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>User Guide - CWidgets Library V0.1.0a1</title>
+</head>
+<body>
+
+    <h1></h1>
+    <p>User Guide - CWidgets Library V0.1.0a1:</p>
+
+    <h1 id="introduction">Introduction</h1>
+    <p>CWidgets: Your Power in Programming Without Limits<br>
+    Turn Qt obstacles into creative opportunities<br>
+    CWidgets is a specialized Python library that gives blind developers full control over PyQt6 and PySide6 interfaces.<br>
+    The era of limitations with QTextEdit is over. From now on, you can design interfaces with multi-line edit boxes with complete freedom and compatibility.<br>
+    The library provides absolute compatibility for blind developers, as all elements are designed to work seamlessly with the NVDA screen reader.<br>
+    Continuous creativity: No need to learn new tools, just continue writing the code you're used to while keeping the same functions and features.<br>
+    Smart engineering: Every element in CWidgets inherits properties from the original Qt elements, ensuring standard performance with radical solutions to compatibility issues.<br>
+    What will change in how you write your programs using PyQT6 and PySide6 windows?<br>
+    All you need to do is replace the first letter only (C instead of Q):<br>
+    CTextEdit instead of QTextEdit.<br>
+    CButton instead of QPushButton.<br>
+    Where C stands for Custom or customized.<br>
+    Complete flexibility in work, as the library supports your preferred working environment with the same efficiency:</p>
+    <pre>
+With PySide6:
+from cwidgets.pyside6 import CButton, CLabel, CLineEdit....
+
+With PyQt6:
+from cwidgets.pyqt6 import CButton, CLabel, CLineEdit .....</pre>
+    <p>CWidgets: Code with confidence, design without limits.</p>
+
+    <h1 id="widgets-list">Available Components:</h1>
+    <p>7 fully compatible custom elements provided by this library:</p>
+    <ol>
+        <li>CTextEdit</li>
+        <li>CButton</li>
+        <li>CLabel</li>
+        <li>CLineEdit</li>
+        <li>CComboBox</li>
+        <li>CListWidget</li>
+        <li>CMessageBox</li>
+    </ol>
+
+    <h1 id="installation">Installation</h1>
+    <pre>pip install cwidgets</pre>
+
+<h1 id="show-help">Accessing Help</h1>
+<p>After installation, start exploring the library, its components, properties, and how to use them through these functions:</p>
+<pre>
+import cwidgets
+
+# List all available components
+cwidgets.widgets()
+
+# List all available sections
+cwidgets.sections()
+
+# Open the full guide in the browser
+cwidgets.show_help()
+cwidgets.show_help(lang="en")
+
+# Open a specific component directly
+cwidgets.show_help(lang="en", goto="CButton")
+cwidgets.show_help(lang="en", goto="CTextEdit")
+
+# Open a specific section directly
+cwidgets.show_help(lang="en", goto="introduction")
+cwidgets.show_help(lang="en", goto="installation")
+</pre>
+
+    <h1 id="common-issues">Common Issues Resolved</h1>
+
+    <p>#CTextEdit: Multi-line edit box: CTextEdit solves the fundamental problem of QTextEdit, which is incompatible with NVDA.</p>
+
+    <p>#CComboBox &amp; CListWidget: Separation of navigation from activation: Separate navigation actions (arrows) from activation actions (Enter/Space) to avoid unintended activations. Disabling available: Maintain NVDA announcement even when the component is disabled.</p>
+
+    <p>#CButton: Activation with ENTER, RETURN, SPACE &amp; mouse. Compatibility even when disabled.</p>
+
+    <p>#CLabel: Enhanced compatibility for titles and labels</p>
+
+    <p>#CLineEdit: Allows retrieving text from within the element by pressing enter without any additional code.</p>
+
+    <p>#CMessageBox: Self-closing message dialogs. You can specify a time after which the dialog disappears automatically.</p>
+
+    <p>#Except for CTextEdit, all other components inherit from QT and thus retain all their basic properties and functions.</p>
+
+    <h1 id="widgets-details">Component Details:</h1>
+    <p>Definition, creation, properties, usage.</p>
+
+    <h2 id="ctextedit">CTextEdit</h2>
+
+    <h3>Definition</h3>
+    <p>CTextEdit is a multi-line edit box fully compatible with NVDA.</p>
+
+    <h3>Why — The Fundamental Problem</h3>
+    <ul>
+        <li>The original QTextEdit in Qt is incompatible with NVDA.</li>
+        <li>A blind developer cannot read or write in this element.</li>
+    </ul>
+    <p>This is the barrier that prevents blind developers from designing QT interfaces containing multi-line edit boxes.<br>
+    Until the emergence of this library, no solutions to this problem were known to be used by blind developers.</p>
+
+    <h3>The Solution — Win32 RichEdit Integrated into Qt</h3>
+    <p>The solution provided by this library is to integrate a Win32 RichEdit control directly into the QT window.<br>
+    Win32 RichEdit is fully compatible with NVDA by default.<br>
+    The complex phase in designing the solution is integrating it into a Qt window while maintaining this accessibility.<br>
+    This library also ensured the default use of commands in QT.<br>
+    QTextEdit element structure:<br>
+    -QTextEdit<br>
+    -EditorStyle        — Styles, font, color, alignment<br>
+    -RichEdit Win32  — The original compatible engine</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Full accessibility with NVDA: Reading, writing, navigation, selection.</li>
+        <li>API compatible with QTextEdit: setText, toPlainText, append, clear, setReadOnly.</li>
+        <li>Formatted text: Font, size, bold, italic, color, alignment.</li>
+        <li>Asynchronous management: Styles and text pending if the Win32 handle is not yet available.</li>
+        <li>Smart focus: Restores focus when returning to the application.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CTextEdit
+    # PyQt6
+    from cwidgets.pyqt6 import CTextEdit
+
+    # Creation
+    self.editor = CTextEdit(self, accessible_name="Box name")
+    layout.addWidget(self.editor)
+
+    # Insert text into the box
+    self.editor.setText("Hello!")
+    # Retrieve text from the box:
+    text = self.editor.text()
+    text = self.editor.toPlainText()
+    # Add text to the original text
+    self.editor.append("New line.")
+    # Clear text to empty the box
+    self.editor.clear()
+
+    # Make the box read-only
+    self.editor.setReadOnly(True)
+    # Disable read-only to make the box writable and readable
+    self.editor.setReadOnly(False)
+
+    # Font — QFont or (str, int, bool, bool)
+    self.editor.setFont("Arial", 12, True, False)  # Name, size, bold, italic
+
+    # Colors — name or RGB set
+    self.editor.setTextColor("red")
+    self.editor.setTextColor((255, 0, 0))
+    self.editor.setBackgroundColor("yellow")
+
+    # Alignment
+    self.editor.setAlignment("left")
+    self.editor.setAlignment("center")
+    self.editor.setAlignment("right")</pre>
+
+    <h3>Available Colors</h3>
+    <pre>
+    # Supported names
+    "black", "white", "red", "green", "blue", "yellow",
+    "cyan", "magenta", "gray", "darkgray", "lightgray",
+    "orange", "purple", "violet", "pink", "brown",
+    "navy", "teal", "lime", "olive", "maroon",
+    "coral", "salmon", "gold", "silver"
+
+    # or RGB set
+    (255, 0, 0)    # red
+    (0, 128, 255)  # light blue</pre>
+
+    <h3>Optional Visual Title</h3>
+    <p>accessible_name is read by NVDA but is not visually visible.<br>
+    To add a visual title, add a CLabel to the layout before the editor:</p>
+    <pre>
+    self.editor = CTextEdit(self)
+    self.lbl    = CLabel("Edit box:", self, self.editor)
+    It is essential to note that adding CLabel to the layout must precede adding the editor so that the box name appears above the box and not below it.
+    layout.addWidget(self.lbl)
+    layout.addWidget(self.editor)</pre>
+
+    <h2 id="clabel">CLabel</h2>
+
+    <h3>Definition</h3>
+    <p>CLabel is an NVDA-compatible label that replaces QLabel.</p>
+
+    <h3>Why?</h3>
+    <p>The original QLabel is invisible to NVDA unless linked to a buddy — and only when that buddy has focus.</p>
+
+    <h3>Solution</h3>
+    <p>Two modes:<br>
+    - Single mode: NVDA-compatible and recognized even with tab navigation.<br>
+    - Buddy mode: When CLabel is linked to another element.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Shortcut cleanup: &Name → "Name" for NVDA, the visual shortcut for Qt is preserved.</li>
+        <li>prefix: Additional text, for example, when we want to express a status.</li>
+        <li>Default synchronization:<br>
+        Changing the label content.<br>
+        setText()<br>
+        Changing the additional text:<br>
+        setPrefix()<br>
+        Resynchronize without additional code.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CLabel, CLineEdit
+    # PyQt6
+    from cwidgets.pyqt6 import CLabel, CLineEdit
+
+    # Single mode — NVDA reads the text and can be accessed via tab:
+    self.lbl = CLabel("File saved", self)
+
+    # With prefix — NVDA announces: "status File saved"
+    self.lbl = CLabel("File saved", self, prefix="status")
+
+    # Buddy mode — NVDA announces the label when the field gets focus
+    # The label must be added to the layout before the edit field so that the label appears above the field visually
+    self.edit = CLineEdit(self)
+    self.lbl  = CLabel("Name:", self, self.edit)
+    layout.addWidget(self.lbl)
+    layout.addWidget(self.edit)
+
+    # Dynamic update
+    self.lbl.setText("Processing")
+    self.lbl.setPrefix("Error")</pre>
+
+    <h2 id="cbutton">CButton</h2>
+
+    <h3>Definition</h3>
+    <p>CButton is a button with additional features that make it usable without needing extra code lines that the original button would require to enable these features.</p>
+
+    <h3>Why?</h3>
+    <ul>
+        <li>The original QPushButton only accepts Space for activation — Enter and Return are ignored.</li>
+        <li>setEnabled(False) makes the button invisible to NVDA, even with setAccessibleDescription.</li>
+    </ul>
+
+    <h3>Solution</h3>
+    <ul>
+        <li>Activation includes Enter/Return.</li>
+        <li>Button disabling continues compatibility.<br>
+        The button remains visually "active" but does not work.<br>
+        This is the solution: Providing the ability to disable while maintaining compatibility, unlike QPushButton which disappears from NVDA if disabled.</li>
+    </ul>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Extended activation: Space, Enter, Return, mouse click.</li>
+        <li>Available disabling: Unclickable + NVDA announces "unavailable".</li>
+        <li>API matching QPushButton.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CButton
+    # PyQt6
+    from cwidgets.pyqt6 import CButton
+
+    self.btn = CButton("Save", self)
+    self.btn.clicked.connect(self.on_click)
+
+    # Disable — NVDA announces "unavailable", button is unclickable
+    self.btn.setEnabled(False)
+    self.btn.setEnabled(True)
+
+    # Change title — original Qt
+    self.btn.setText("New title")
+
+    # Check status
+    if self.btn.isEnabled():
+        ...</pre>
+
+    <h2 id="clineedit">CLineEdit</h2>
+
+    <h3>Definition</h3>
+    <p>CLineEdit is a compatible text input field that replaces QLineEdit.</p>
+
+    <h3>Why?</h3>
+    <p>QLineEdit requires an additional line of code to retrieve text.<br>
+    CLineEdit makes this activation automatic via the validated signal.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>The validated signal emits the current text on every Enter/Return.</li>
+        <li>placeholderText as a parameter — announced by NVDA when the field is empty.</li>
+        <li>Title via CLabel with buddy.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CLineEdit, CLabel
+    # PyQt6
+    from cwidgets.pyqt6 import CLineEdit, CLabel
+
+    # Create the field first for buddy
+    self.edit = CLineEdit(self)
+    self.lbl  = CLabel("Name:", self, self.edit)
+    layout.addWidget(self.lbl)
+    layout.addWidget(self.edit)
+
+    # With initial text
+    self.edit = CLineEdit(self, "Cairo")
+
+    # With placeholder text
+    self.edit = CLineEdit(self, placeholderText="Enter your name...")
+
+    # validated signal
+    self.edit.validated.connect(self.on_validated)
+
+    def on_validated(self, text):
+        print(text)
+
+    # Show/hide — original Qt
+    self.edit.hide()
+    self.edit.show()</pre>
+
+    <h2 id="ccombobox">CComboBox</h2>
+
+    <h3>Definition</h3>
+    <p>CComboBox is a compatible dropdown list that replaces QComboBox.</p>
+
+    <h3>Why?</h3>
+    <p>The original QComboBox is activated internally by arrows.<br>
+    This is a problem for blind users who navigate with arrows.</p>
+
+    <h3>Solution</h3>
+    <p>Explicit separation between navigation and activation.<br>
+    While maintaining compatibility even when the list is disabled.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Free navigation: ↑ ↓ to navigate without activation.</li>
+        <li>Explicit activation: Enter, Return, Space → via validated signal.</li>
+        <li>cleared signal: Emitted when the user checks an empty list.</li>
+        <li>Available disabling: NVDA announces "unavailable".</li>
+        <li>Title via CLabel with buddy — using setAccessibleName is not recommended as it replaces the buddy CLabel.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CComboBox, CLabel, CMessageBox, CButton
+    # PyQt6
+    from cwidgets.pyqt6 import CComboBox, CLabel, CMessageBox, CButton
+
+    # Create the list first for buddy
+    self.combo = CComboBox(self)
+    self.combo.addItems(["Egypt", "Tunisia", "Morocco"])
+    self.lbl = CLabel("Country list:", self, self.combo)
+    layout.addWidget(self.lbl)
+    layout.addWidget(self.combo)
+
+    self.combo.validated.connect(self.on_selection)
+    self.combo.cleared.connect(self.on_cleared)
+
+    # Button to clear the list
+    self.btn_clear = CButton("Clear", self)
+    self.btn_clear.clicked.connect(self.combo.clear)
+
+    def on_selection(self):
+        text  = self.combo.currentText()
+        index = self.combo.currentIndex()
+        CMessageBox.information(self, "Selection", f"Country: {text}")
+
+    def on_cleared(self):
+        CMessageBox.warning(self, "Warning", "No items available in the list.")
+
+    # Disable / re-enable
+    self.combo.setEnabled(False)
+    self.combo.setEnabled(True)</pre>
+
+    <h2 id="clistwidget">CListWidget</h2>
+
+    <h3>Definition</h3>
+    <p>CListWidget is a compatible list that replaces QListWidget.</p>
+
+    <h3>Why?</h3>
+    <p>The original QListWidget is activated immediately when navigating using arrows.<br>
+    This is an obstacle for blind users, and disabling this activation with arrows requires writing additional code lines.</p>
+
+    <h3>Solution</h3>
+    <ul>
+        <li>Separation between navigation and activation.</li>
+        <li>Maintaining accessibility in disabled mode.</li>
+    </ul>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Free navigation: ↑ ↓ to navigate without activation.</li>
+        <li>Explicit activation: Enter, Return, Space.</li>
+        <li>When disabled: NVDA announces "unavailable".</li>
+        <li>Title via CLabel with buddy — using setAccessibleName is not recommended as it replaces the buddy CLabel.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CListWidget, CLabel
+    # PyQt6
+    from cwidgets.pyqt6 import CListWidget, CLabel
+
+    # Create the list
+    self.list = CListWidget(self)
+    self.list.addItems(["Iraq", "Saudi Arabia", "Kuwait"])
+    self.lbl = CLabel("Country list:", self, self.list)
+    layout.addWidget(self.lbl)
+    layout.addWidget(self.list)
+
+    # Original Qt signal — matching QListWidget
+    self.list.itemActivated.connect(self.on_item)
+
+    def on_item(self, item):
+        text = item.text()
+        row  = self.list.currentRow()
+        print(row, text)
+
+    # Disable / re-enable
+    self.list.setEnabled(False)
+    self.list.setEnabled(True)
+
+    # Clear — original Qt
+    self.list.clear()</pre>
+
+    <h2 id="cmessagebox">CMessageBox</h2>
+
+    <h3>Definition</h3>
+    <p>CMessageBox is a compatible message dialog.</p>
+
+    <h3>Why?</h3>
+    <p>The original QMessageBox does not provide automatic closing.<br>
+    It is needed for messages that do not require user intervention.</p>
+
+    <h3>Solution</h3>
+    <p>Adding a mode where the message closes after a specified time.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>information: Timed or non-timed — no sound.</li>
+        <li>warning: Timed or non-timed — no sound.</li>
+        <li>critical: Always non-timed + system sound — manual closing mandatory.</li>
+        <li>Manual closing is always possible before the timeout ends.</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <pre>
+    # PySide6
+    from cwidgets.pyside6 import CMessageBox
+    # PyQt6
+    from cwidgets.pyqt6 import CMessageBox
+
+    # Non-timed information
+    CMessageBox.information(self, "Success", "File saved.")
+
+    # Timed information — auto-close after 3 seconds
+    CMessageBox.information(self, "Success", "File saved.", timeout=3000)
+
+    # Non-timed warning
+    CMessageBox.warning(self, "Warning", "Insufficient disk space.")
+
+    # Timed warning
+    CMessageBox.warning(self, "Warning", "Unstable connection.", timeout=4000)
+
+    # Error — non-timed + sound — manual closing mandatory
+    CMessageBox.critical(self, "Error", "File not found.")
+
+    # It is recommended to use timeout only for information and warning
+    # Timeout is not available for critical</pre>
+
+    <h1 id="best-practices">Best Practices</h1>
+
+    <ol>
+        <li>Titles: Always use CLabel with buddy.</li>
+        <pre>
+    # Not recommended — replaces label
+    self.combo.setAccessibleName("...")
+
+    # Correct
+    self.lbl = CLabel("Country list:", self, self.combo)</pre>
+
+        <li>Disabling: setEnabled(False) is available by default on all C* components.</li>
+
+        <li>Activation:<br>
+        - CLineEdit and CComboBox → validated signal<br>
+        - CListWidget → original Qt signal itemActivated</li>
+
+        <li>Creation order with buddy: Always create the element before its CLabel.</li>
+        <pre>
+    # Correct — element is created before the label
+    self.combo = CComboBox(self)
+    self.lbl   = CLabel("Country:", self, self.combo)</pre>
+    </ol>
+
+    <h1 id="requirements">System Requirements</h1>
+    <ul>
+        <li>PySide6 or PyQt6</li>
+        <li>pywin32 — only for CTextEdit (Win32 RichEdit integration)</li>
+    </ul>
+    <p>Provided by the library:<br>
+    - validate_parent — Regular parent window check<br>
+    - logger — Error logging (module "cwidgets")</p>
+
+    <h1 id="limits">Library Limitations</h1>
+    <ul>
+        <li>CTextEdit relies on Win32 RichEdit — Windows only compatibility.</li>
+        <li>Using setAccessibleName with CComboBox and CListWidget is not recommended as it replaces the buddy CLabel.</li>
+        <li>CButton: Gray shading via stylesheet — Windows does not automatically shade the button when keeping it active for NVDA.</li>
+    </ul>
+
+<h1 id="developer">Developer</h1>
+<p>Mohamed Hédi Bettaieb (Tunisia)</p>
+<p>Contact: hedidouz@gmail.com</p>
+<p>Date: May 2026</p>
+
+
+    <h1 id="conclusion">Conclusion</h1>
+    <p>This project aims to make Qt applications 100% accessible to blind developers and users, without sacrificing productivity or Qt developers' habits.</p>
+</body>
+</html>

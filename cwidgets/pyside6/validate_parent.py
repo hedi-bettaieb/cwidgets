@@ -13,6 +13,8 @@ from PySide6.QtWidgets import QWidget
 
 # Logger for CWidgets components
 logger = logging.getLogger("cwidgets")
+logger.debug(f"logger initialized in {__file__}")
+
 
 class CWidgetError(TypeError):
     """Exception raised when an invalid parent widget is provided to a CWidget component."""

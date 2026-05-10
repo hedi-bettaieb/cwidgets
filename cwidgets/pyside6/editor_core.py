@@ -19,9 +19,6 @@ import win32con
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
 
-# Logger for this module
-logger = logging.getLogger("cwidgets")
-
 # Resolve user32 functions with explicit signatures
 user32 = ctypes.windll.user32
 
@@ -61,45 +58,10 @@ EM_GETLANGOPTIONS = win32con.WM_USER + 121
 IMF_AUTOKEYBOARD = 0x0001
 MAX_TEXT_LENGTH = 10_000_000  # Safeguard: 10 MB
 
-# Unified library logger configuration
-_cwidgets_logger = logging.getLogger("cwidgets")
-_cwidgets_logger.setLevel(logging.DEBUG)
-
-if not _cwidgets_logger.handlers:
-    # Main directory: %APPDATA%\cwidgets\
-    appdata_dir = os.environ.get("APPDATA", "")
-    if appdata_dir:
-        cwidgets_dir = os.path.join(appdata_dir, "cwidgets")
-        try:
-            os.makedirs(cwidgets_dir, exist_ok=True)
-            log_file = os.path.join(cwidgets_dir, "cwidgets.log")
-            file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
-        except Exception:
-            log_file = None
-    else:
-        log_file = None
-
-    # Fallback: %TEMP%\cwidgets.log
-    if not log_file:
-        try:
-            temp_dir = tempfile.gettempdir()
-            log_file = os.path.join(temp_dir, "cwidgets.log")
-            file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
-        except Exception:
-            file_handler = None
-
-    # Add handler if created
-    if file_handler:
-        file_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        file_handler.setFormatter(formatter)
-        _cwidgets_logger.addHandler(file_handler)
-        _cwidgets_logger.propagate = False
-        _cwidgets_logger.debug(f"Log file: {log_file}")
-
+# Logger for this module
 logger = logging.getLogger("cwidgets")
+logger.debug(f"logger initialized in {__file__}")
+
 
 class EditorCore:
     """
