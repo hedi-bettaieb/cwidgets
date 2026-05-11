@@ -36,7 +36,7 @@ from cwidgets.pyqt6.widgets import (
 )
 
 # Current library version
-__version__ = "0.1.0a1"
+__version__ = "0.1.0"
 
 # Public API exports
 __all__ = [

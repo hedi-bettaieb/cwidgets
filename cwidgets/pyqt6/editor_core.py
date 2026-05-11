@@ -16,8 +16,8 @@ import tempfile
 import win32gui
 import win32con
 
-from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import QTimer
 
 # Resolve user32 functions with explicit signatures
 user32 = ctypes.windll.user32
