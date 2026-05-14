@@ -1,24 +1,31 @@
 # -*- coding: utf-8 -*-
+
 """
 CWidgets: Qt widget library optimized for accessibility with NVDA.
+PyQt6 version.
 
-This library provides wrappers around standard PySide6 widgets to ensure
+This library provides wrappers around standard PyQt6 widgets to ensure
 proper screen reader feedback and keyboard navigation for users of
 screen readers like NVDA.
 
 Included classes:
+
 - CTextEdit: Rich text editing control based on the Win32 RichEdit API, compatible with QTextEdit.
+
 - CLabel: Text label that dynamically manages 'buddy' relationships for accessibility.
+
 - CButton: Push button supporting activation via Enter and Space keys.
+
 - CLineEdit: Single-line input field with explicit validation signal.
+
 - CComboBox: Dropdown list optimized for smooth screen reader navigation.
+
 - CListWidget: List widget optimized for accessible focus and selection.
+
 - CMessageBox: Modal or timed dialog boxes with audio feedback.
 """
 
 import logging
-import win32gui
-import win32con
 
 from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QComboBox, QListWidget,
@@ -288,6 +295,30 @@ class CTextEdit(QWidget):
 
     def setAlignment(self, alignment):
         """
+        
+        Sets the horizontal alignment of the current paragraph.
+        Args:
+            alignment: Union[str, Qt.Alignment] representing the desired alignment.
+        """
+        if isinstance(alignment, Qt.AlignmentFlag):
+            if alignment == Qt.AlignLeft:
+                a = "left"
+            elif alignment == Qt.AlignCenter:
+                a = "center"
+            elif alignment == Qt.AlignRight:
+                a = "right"
+            else:
+                a = "auto"
+        else:
+            a = alignment
+        if self.core:
+            self.core.set_alignment(a)
+        else:
+            self.pending_styles.append(('set_alignment', (a,)))
+
+
+    def set100Alignment(self, alignment):
+        """
         Sets the horizontal alignment of the current paragraph.
         Args:
             alignment: Union[str, Qt.AlignmentFlag] representing the desired alignment.
@@ -295,7 +326,7 @@ class CTextEdit(QWidget):
         if isinstance(alignment, Qt.AlignmentFlag):
             if alignment == Qt.AlignmentFlag.AlignLeft:
                 a = "left"
-            elif alignment == Qt.AlignmentFlag.AlignHCenter:
+            elif alignment == Qt.AlignmentFlag.AlignCenter:
                 a = "center"
             elif alignment == Qt.AlignmentFlag.AlignRight:
                 a = "right"
@@ -307,6 +338,8 @@ class CTextEdit(QWidget):
             self.core.set_alignment(a)
         else:
             self.pending_styles.append(('set_alignment', (a,)))
+
+
 
     def setTextColor(self, *args):
         """
@@ -516,12 +549,10 @@ class CButton(QPushButton):
         else:
             super().keyPressEvent(event)
 
-    def mousePressEvent(self, event):
-         #Block mouse click if disabled
-        if self._enabled_state:
-            super().mousePressEvent(event)
-
-
+    #def mousePressEvent(self, event):
+        # Block mouse click if disabled
+        #if self._enabled_state:
+            #super().mousePressEvent(event)
 
     # ------------------------------------------------------------------ #
     # Public                                                             #
@@ -647,12 +678,11 @@ class CComboBox(QComboBox):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
-         #Block mouse click if disabled
+        # Block mouse click if disabled
         if self._enabled_state:
             super().mousePressEvent(event)
 
-
-    # ------------------------------------------------------------------ #
+# ------------------------------------------------------------------ #
     # Public                                                             #
     # ------------------------------------------------------------------ #
 

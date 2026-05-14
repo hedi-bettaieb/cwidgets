@@ -1,4 +1,4 @@
-# Guide de l'utilisateur - Bibliothèque CWidgets V0.1.0 :
+# Guide de l'utilisateur - Bibliothèque CWidgets V0.1.1 :
 
 ## Introduction
 CWidgets : Votre puissance de programmation illimitée
