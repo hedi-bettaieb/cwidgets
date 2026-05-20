@@ -2,7 +2,7 @@
 """
 CWidgets: Qt widget library optimized for accessibility with NVDA.
 
-This library provides wrappers around standard PySide6 widgets to ensure
+This library provides wrappers around standard PyQt6 widgets to ensure
 proper screen reader feedback and keyboard navigation for users of
 screen readers like NVDA.
 
@@ -341,9 +341,6 @@ class CTextEdit(QWidget):
         super().closeEvent(event)
 
     def hideEvent(self, event):
-        if self.core:
-            self.core.cleanup()
-        self._destroyed = True
         super().hideEvent(event)
 
 # ###########################################################################
@@ -517,11 +514,9 @@ class CButton(QPushButton):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
-         #Block mouse click if disabled
+        # Block mouse click if disabled
         if self._enabled_state:
             super().mousePressEvent(event)
-
-
 
     # ------------------------------------------------------------------ #
     # Public                                                             #
@@ -647,10 +642,9 @@ class CComboBox(QComboBox):
             super().keyPressEvent(event)
 
     def mousePressEvent(self, event):
-         #Block mouse click if disabled
+        # Block mouse click if disabled
         if self._enabled_state:
             super().mousePressEvent(event)
-
 
     # ------------------------------------------------------------------ #
     # Public                                                             #
@@ -715,7 +709,6 @@ class CListWidget(QListWidget):
         # Block mouse click if disabled
         if self._enabled_state:
             super().mousePressEvent(event)
-
 
     # ------------------------------------------------------------------ #
     # Public                                                             #

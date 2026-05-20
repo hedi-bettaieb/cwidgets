@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cwidgets"
-version = "0.1.1"
+version = "0.1.2"
 description = "Accessible custom widgets for PyQt6 and PySide6 — keyboard navigation, NVDA screen reader support, and Win32 RichEdit integration"
 readme = "README.md"
 license = "GPL-3.0-or-later"

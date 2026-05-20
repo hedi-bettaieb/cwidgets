@@ -36,7 +36,7 @@ from cwidgets.pyside6.widgets import (
 )
 
 # Current library version
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Public API exports
 __all__ = [

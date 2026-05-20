@@ -33,7 +33,6 @@ from .validate_parent import validate_parent
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
 
-
 # ============================================================================
 # Common constants
 # ============================================================================
@@ -54,11 +53,6 @@ BUTTON_DISABLED_STYLE = "QPushButton { color: gray; background-color: #e0e0e0; }
 class CTextEdit(QWidget):
     """
     Rich text editing component using Windows' native RichEdit engine.
-
-    This widget encapsulates the low-level functionality of the Win32 RichEdit control
-    to provide a programming interface (API) similar to QTextEdit, while ensuring
-    maximum compatibility with screen readers like NVDA through the use of native
-    window handles.
     """
 
     def __init__(self, parent=None, accessible_name="", stretch=1, x=0, y=0, width=None, height=None):
@@ -72,12 +66,12 @@ class CTextEdit(QWidget):
         self._appending = False
         self.core = None
         self.pending_text = None
-        # List of tuples (method_name, args) for deferred style application after Win32 handle initialization.
         self.pending_styles = []
         self._destroyed = False
         self._first_focus = True
         self._focus_pending = False
         self._accessible_name = accessible_name
+        self._is_hidden = False  # Flag to track the hidden state
 
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         QTimer.singleShot(0, self._create)
@@ -88,16 +82,13 @@ class CTextEdit(QWidget):
     def _create(self):
         """
         Asynchronously initializes the native Win32 RichEdit control.
-        Checks for window handle (HWND) availability before EditorStyle instantiation.
         """
         if self._destroyed:
             logger.debug("_create: widget destroyed, aborting")
             return
         try:
-            # Retrieve the native window handle (HWND) for Win32 control injection.
             hwnd = int(self.winId())
         except RuntimeError as e:
-            # If winId() is not ready yet, defer creation via the event loop.
             logger.debug(f"_create: winId() not available, retrying in 20ms: {e}")
             QTimer.singleShot(20, self._create)
             return
@@ -105,20 +96,23 @@ class CTextEdit(QWidget):
             logger.debug("_create: hwnd is null, retrying in 20ms")
             QTimer.singleShot(20, self._create)
             return
+        
+        # Avoid double creation
+        if self.core is not None:
+            logger.debug("_create: core already exists, skipping")
+            return
+            
         try:
             self.core = EditorStyle()
             self.core._tab_callback = self._navigate_tab
             w = self._width if self._width is not None else self.width()
             h = self._height if self._height is not None else self.height()
-            # Effective creation of the RichEdit control in the Qt container.
             self.core.create(hwnd, self._x, self._y, w, h, "", self._accessible_name)
 
-            # Restore text that was pending before handle creation.
             if self.pending_text is not None:
                 self.core.set_text(self.pending_text)
                 self.pending_text = None
 
-            # Apply deferred styles configured during initialization.
             for method_name, args in self.pending_styles:
                 try:
                     getattr(self.core, method_name)(*args)
@@ -126,22 +120,28 @@ class CTextEdit(QWidget):
                     logger.exception(f"_create: error applying style {method_name}")
             self.pending_styles.clear()
 
-            # Initialize selection at the start of the document via Win32 API.
             win32gui.SendMessage(self.core.edit_hwnd, win32con.EM_SETSEL, 0, 0)
 
-            # Subclass the main window to intercept system focus changes.
             main_hwnd = int(self.window().winId())
             self.core.subclass_main(main_hwnd, self._on_app_focus)
 
-            # Handle a focus request that occurred before creation was finalized.
             if self._focus_pending:
                 self._focus_pending = False
                 self.setFocus()
 
+            self._is_hidden = False
             logger.info("CTextEdit created successfully")
         except Exception as e:
             logger.exception("_create: error during control creation")
             self.core = None
+
+    def _ensure_core(self):
+        """
+        Recreate core if necessary (when the widget returns from hidden state)
+        """
+        if self.core is None and not self._destroyed and self.isVisible():
+            logger.debug("_ensure_core: recreating core after hide/show cycle")
+            self._create()
 
     def _navigate_tab(self, forward: bool):
         """
@@ -161,8 +161,9 @@ class CTextEdit(QWidget):
     def setFocus(self):
         """
         Assigns keyboard focus to the underlying RichEdit control.
-        Handles cases where the control is not yet instantiated (deferred focus).
         """
+        self._ensure_core()
+        
         if self.core and self.core.edit_hwnd:
             self.core.set_focus()
             super().setFocus()
@@ -187,6 +188,7 @@ class CTextEdit(QWidget):
         """
         Captures the focus-in event to synchronize Win32 focus.
         """
+        self._ensure_core()
         super().focusInEvent(event)
         if self.core and not self._appending:
             self.core.set_focus()
@@ -197,24 +199,17 @@ class CTextEdit(QWidget):
     def toPlainText(self) -> str:
         """
         Retrieves the raw text content of the control.
-        Returns:
-            str: Text content extracted from the Win32 engine or the pending buffer.
         """
         if self.core:
             return self.core.get_text()
         return self.pending_text if self.pending_text is not None else ""
 
     def text(self) -> str:
-        """
-        Synonym accessor for toPlainText() to ensure compatibility with the standard Qt API.
-        """
         return self.toPlainText()
 
     def setText(self, text: str):
         """
         Sets the entire text content.
-        Args:
-            text (str): String to inject into the control.
         """
         if self.core and self.core.edit_hwnd:
             self.core.set_text(text)
@@ -233,8 +228,6 @@ class CTextEdit(QWidget):
     def append(self, text: str):
         """
         Appends a text sequence to the end of the document with automatic scrolling.
-        Args:
-            text (str): Text to append.
         """
         if self.core:
             self._appending = True
@@ -252,8 +245,6 @@ class CTextEdit(QWidget):
     def setReadOnly(self, readonly: bool):
         """
         Configures the read-only attribute of the control.
-        Args:
-            readonly (bool): True to enable read-only mode.
         """
         if self.core:
             self.core.set_readonly(readonly)
@@ -262,8 +253,7 @@ class CTextEdit(QWidget):
 
     def setFont(self, *args):
         """
-        Configures typographic attributes (family, size, weight, italic).
-        Supports passing a QFont object or a list of explicit attributes.
+        Configures typographic attributes.
         """
         if len(args) == 1 and isinstance(args[0], QFont):
             font = args[0]
@@ -289,8 +279,6 @@ class CTextEdit(QWidget):
     def setAlignment(self, alignment):
         """
         Sets the horizontal alignment of the current paragraph.
-        Args:
-            alignment: Union[str, Qt.Alignment] representing the desired alignment.
         """
         if isinstance(alignment, Qt.Alignment):
             if alignment == Qt.AlignLeft:
@@ -334,17 +322,32 @@ class CTextEdit(QWidget):
             self.core.resize(0, 0, self.width(), self.height())
         super().resizeEvent(event)
 
-    def closeEvent(self, event):
-        if self.core:
-            self.core.cleanup()
-        self._destroyed = True
-        super().closeEvent(event)
+    def showEvent(self, event):
+        """
+        Recreate core if necessary when the widget is redisplayed
+        """
+        if self._is_hidden and not self.core and not self._destroyed:
+            logger.debug("showEvent: recreating core after hide")
+            self._create()
+        self._is_hidden = False
+        super().showEvent(event)
 
     def hideEvent(self, event):
+        """
+        Mark widget as hidden without destroying core
+        """
+        self._is_hidden = True
+        super().hideEvent(event)
+
+    def closeEvent(self, event):
+        """
+        Clean up only when widget is actually closed
+        """
         if self.core:
             self.core.cleanup()
+            self.core = None
         self._destroyed = True
-        super().hideEvent(event)
+        super().closeEvent(event)
 
 # ###########################################################################
 # CLabel

@@ -12,7 +12,7 @@ import webbrowser
 
 __author__ = "Mohamed Hédi Bettaieb (Tunisia)"
 __email__ = "hedidouz@gmail.com"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __license__ = "GPL-3.0-or-later"
 
 # ------------------------------------------------------------------ #
