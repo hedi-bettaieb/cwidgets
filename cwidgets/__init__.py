@@ -1,3 +1,4 @@
+#cwidgets/__init__.py
 # -*- coding: utf-8 -*-
 """
 cwidgets - Custom accessible widgets for Qt6 (PyQt6/PySide6).
@@ -9,10 +10,11 @@ import os
 import re
 import tempfile
 import webbrowser
+from cwidgets.ctextedit_api import CTEXTEDIT_API, get_api_count
 
 __author__ = "Mohamed Hédi Bettaieb (Tunisia)"
 __email__ = "hedidouz@gmail.com"
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __license__ = "GPL-3.0-or-later"
 
 # ------------------------------------------------------------------ #
@@ -55,7 +57,7 @@ if not _logger.handlers:
 #  Available widgets and sections                                     #
 # ------------------------------------------------------------------ #
 WIDGETS = [
-    "CTextEdit",    
+    "CTextEdit",
     "CButton",
     "CLabel",
     "CLineEdit",
@@ -99,7 +101,6 @@ def widgets():
         print(f"  - {w}")
     print()
 
-
 def sections():
     """
     Display the list of available sections in the help guide.
@@ -116,7 +117,6 @@ def sections():
     for s in SECTIONS:
         print(f"  - {s}")
     print()
-
 
 def show_help(lang="en", goto=None):
     """
@@ -153,9 +153,9 @@ def show_help(lang="en", goto=None):
         return
 
     if goto:
-        # normaliser — widget ou section
+        # normalize — widget or section
         goto_id = goto.lower()
-        # vérifier si c'est un widget ou une section
+        # check if it's a widget or section
         all_ids = [w.lower() for w in WIDGETS] + SECTIONS
         if goto_id not in all_ids:
             print(f'Unknown target: "{goto}"')
@@ -163,7 +163,7 @@ def show_help(lang="en", goto=None):
             sections()
             return
 
-        # extraire la section — h1 ou h2 avec cet id
+        # extract the section — h1 or h2 with this id
         pattern = rf'(<(?:h1|h2)[^>]*id="{goto_id}".*?)(?=<h1|<h2|$)'
         match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
 
@@ -189,3 +189,28 @@ def show_help(lang="en", goto=None):
     except Exception as e:
         print(f'Failed to open help: {e}')
 
+# ------------------------------------------------------------------ #
+#  CTextEdit API helper                                               #
+# ------------------------------------------------------------------ #
+
+class _CTextEditHelp:
+
+    def show(self):
+        total = get_api_count()
+        print(f"\n  CTextEdit — {total} methods available:")
+        for category in sorted(CTEXTEDIT_API.keys()):
+            print(f"\n  {category}:")
+            for method in CTEXTEDIT_API[category]:
+                print(f"    {method}")
+        print()
+
+    def show_details(self):
+        total = get_api_count()
+        print(f"\n  CTextEdit — {total} methods available:")
+        for category in sorted(CTEXTEDIT_API.keys()):
+            print(f"\n  {category}:")
+            for method, description in CTEXTEDIT_API[category].items():
+                print(f"    {method:<30} {description}")
+        print()
+
+ctextedit = _CTextEditHelp()

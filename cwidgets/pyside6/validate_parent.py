@@ -15,10 +15,13 @@ from PySide6.QtWidgets import QWidget
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
 
+# --------------------------------------------------
 
 class CWidgetError(TypeError):
     """Exception raised when an invalid parent widget is provided to a CWidget component."""
     pass
+
+# --------------------------------------------------
 
 def validate_parent(parent, widget_name: str = "CWidget"):
     """

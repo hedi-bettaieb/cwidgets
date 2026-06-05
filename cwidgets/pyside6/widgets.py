@@ -29,6 +29,8 @@ from PySide6.QtGui import QFont, QKeyEvent, QMouseEvent
 
 from .editor_style import EditorStyle
 from .validate_parent import validate_parent
+from cwidgets.ctextedit_api import CTEXTEDIT_API, show_api
+from .ctextedit_methods import CTextEditMethods
 
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
@@ -46,23 +48,80 @@ VALID_LINE_KEYS = (Qt.Key.Key_Return, Qt.Key.Key_Enter)
 # CSS style configuration for disabled states.
 BUTTON_DISABLED_STYLE = "QPushButton { color: gray; background-color: #e0e0e0; }"
 
+class CMouseEventMixin:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        # Block mouse click if disabled
+        if self._enabled_state:
+            super().mousePressEvent(event)
+
 # ###########################################################################
 # CTextEdit
 # ###########################################################################
 
-class CTextEdit(QWidget):
+class CTextEdit(CTextEditMethods, QWidget):
     """
-    Rich text editing component using Windows' native RichEdit engine.
+    Accessible multiline text input widget based on the native Win32 RichEdit engine,
+    as a replacement for QTextEdit.
+
+    Unlike QTextEdit, this widget is fully visible and usable by screen readers
+    (NVDA, JAWS) thanks to direct integration with the Win32 RICHEDIT20W control.
+
+    Public API compatible with QTextEdit:
+        setText(text)       : set content
+        toPlainText()       : get content
+        text()              : alias for toPlainText()
+        clear()             : clear content
+        append(text)        : add text at the end
+        setReadOnly(bool)   : read-only mode
+        setFont(...)        : font settings
+        setAlignment(...)   : text alignment
+        setTextColor(...)   : text color
+        setBackgroundColor(...): background color
+        setFocus()          : set focus
+
+    Minimal usage:
+        editor = CTextEdit(self)
+        editor.setText("Hello")
+
+    Usage in a layout with other widgets:
+        layout = QHBoxLayout()
+        layout.addWidget(self.list_widget, 1)  # stretch=1
+        layout.addWidget(self.editor, 1)       # stretch=1 required
+        Without stretch=1, QListWidget or QComboBox may
+        take all the space and make CTextEdit invisible.
+
+    Parameters:
+        parent          : Qt parent widget (required for correct layout)
+        accessible_name : name announced by NVDA when focus is received
+        stretch         : stretch factor in layout (reserved)
+        x, y            : initial position of RichEdit (default 0,0)
+        width, height   : initial dimensions (default: Qt widget size)
+
+    Notes:
+        - Do not omit the parent: CTextEdit(self) not CTextEdit()
+        - Use stretch=1 in addWidget() if the widget shares
+          a QHBoxLayout with QListWidget or QComboBox
+        - hide() and show() are supported without content loss
+        - cleanup() is called automatically on close
     """
 
-    def __init__(self, parent=None, accessible_name="", stretch=1, x=0, y=0, width=None, height=None):
+    textChanged           = Signal()
+    selectionChanged      = Signal()
+    cursorPositionChanged = Signal()
+
+    def __init__(self, parent=None, accessible_name="", stretch=1,
+                 x=0, y=0, width=None, height=None):
         validate_parent(parent, "CTextEdit")
         super().__init__(parent)
+
+        # Positioning parameters
         self.stretch = stretch
         self._x = x
         self._y = y
         self._width = width
         self._height = height
+
+        # Internal state
         self._appending = False
         self.core = None
         self.pending_text = None
@@ -71,48 +130,55 @@ class CTextEdit(QWidget):
         self._first_focus = True
         self._focus_pending = False
         self._accessible_name = accessible_name
-        self._is_hidden = False  # Flag to track the hidden state
+        self._creating = False
 
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        QTimer.singleShot(0, self._create)
 
-    # --------------------------------------------------------------------
-    # Internal creation
-    # --------------------------------------------------------------------
+        # Minimum size to ensure visibility in all layouts
+        self.setMinimumHeight(50)
+        self.setMinimumWidth(50)
+
+    # ------------------------------------------------------------------ #
+    #  Internal creation                                                 #
+    # ------------------------------------------------------------------ #
+
     def _create(self):
         """
-        Asynchronously initializes the native Win32 RichEdit control.
+        Creates the Win32 RichEdit control asynchronously.
+        Automatically called by showEvent on first appearance.
+        The _creating flag prevents any double creation.
         """
-        if self._destroyed:
-            logger.debug("_create: widget destroyed, aborting")
+        if self._destroyed or self._creating:
             return
+        self._creating = True
+
         try:
             hwnd = int(self.winId())
         except RuntimeError as e:
             logger.debug(f"_create: winId() not available, retrying in 20ms: {e}")
             QTimer.singleShot(20, self._create)
+            self._creating = False
             return
         if not hwnd:
             logger.debug("_create: hwnd is null, retrying in 20ms")
             QTimer.singleShot(20, self._create)
+            self._creating = False
             return
-        
-        # Avoid double creation
-        if self.core is not None:
-            logger.debug("_create: core already exists, skipping")
-            return
-            
+
         try:
             self.core = EditorStyle()
             self.core._tab_callback = self._navigate_tab
+
             w = self._width if self._width is not None else self.width()
             h = self._height if self._height is not None else self.height()
             self.core.create(hwnd, self._x, self._y, w, h, "", self._accessible_name)
 
+            # Apply pending text
             if self.pending_text is not None:
                 self.core.set_text(self.pending_text)
                 self.pending_text = None
 
+            # Apply pending styles
             for method_name, args in self.pending_styles:
                 try:
                     getattr(self.core, method_name)(*args)
@@ -122,48 +188,51 @@ class CTextEdit(QWidget):
 
             win32gui.SendMessage(self.core.edit_hwnd, win32con.EM_SETSEL, 0, 0)
 
+            # Subclass the main window for Alt+Tab
             main_hwnd = int(self.window().winId())
             self.core.subclass_main(main_hwnd, self._on_app_focus)
 
+            # Resynchronize with the actual Qt size after layout
+            self.core.resize(0, 0, max(self.width(), 1), max(self.height(), 1))
+
+            # Initialize polling
+            self._last_text = self.core.get_text()
+            self._last_sel  = (0, 0)
+            self._poll_timer = QTimer()
+            self._poll_timer.setInterval(100)
+            self._poll_timer.timeout.connect(self._poll_changes)
+            self._poll_timer.start()
+
+            # Apply focus if requested before creation
             if self._focus_pending:
                 self._focus_pending = False
                 self.setFocus()
 
-            self._is_hidden = False
             logger.info("CTextEdit created successfully")
+
         except Exception as e:
             logger.exception("_create: error during control creation")
             self.core = None
-
-    def _ensure_core(self):
-        """
-        Recreate core if necessary (when the widget returns from hidden state)
-        """
-        if self.core is None and not self._destroyed and self.isVisible():
-            logger.debug("_ensure_core: recreating core after hide/show cycle")
-            self._create()
+        finally:
+            self._creating = False
 
     def _navigate_tab(self, forward: bool):
-        """
-        Handles tab navigation via Qt's focus manager.
-        """
+        """Tab/Shift+Tab navigation to the next/previous Qt widget."""
         self.focusNextPrevChild(forward)
 
     def _on_app_focus(self):
-        """
-        Callback to restore focus when the application returns to the foreground.
-        """
+        """Restore focus after Alt+Tab."""
         self.setFocus()
 
-    # --------------------------------------------------------------------
-    # Focus management
-    # --------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
+    #  Focus management                                                  #
+    # ------------------------------------------------------------------ #
+
     def setFocus(self):
         """
-        Assigns keyboard focus to the underlying RichEdit control.
+        Gives focus to the RichEdit and notifies NVDA.
+        If the control is not yet created, focus is queued.
         """
-        self._ensure_core()
-        
         if self.core and self.core.edit_hwnd:
             self.core.set_focus()
             super().setFocus()
@@ -175,9 +244,7 @@ class CTextEdit(QWidget):
         QTimer.singleShot(50, self._check_pending_focus)
 
     def _check_pending_focus(self):
-        """
-        Checks and applies focus that was pending handle creation.
-        """
+        """Applies queued focus if the control is now ready."""
         if self._focus_pending and self.core and self.core.edit_hwnd:
             self._focus_pending = False
             self.core.set_focus()
@@ -185,50 +252,43 @@ class CTextEdit(QWidget):
             self._first_focus = False
 
     def focusInEvent(self, event):
-        """
-        Captures the focus-in event to synchronize Win32 focus.
-        """
-        self._ensure_core()
+        """Synchronizes Win32 focus when Qt gives focus to the widget."""
         super().focusInEvent(event)
-        if self.core and not self._appending:
+        if self.core and not self._appending and not self._focus_pending:
+            self._focus_pending = True
             self.core.set_focus()
+            self._focus_pending = False
 
-    # --------------------------------------------------------------------
-    # Public API (QTextEdit-compatible)
-    # --------------------------------------------------------------------
+    # ------------------------------------------------------------------ #
+    #  Public API                                                        #
+    # ------------------------------------------------------------------ #
+
     def toPlainText(self) -> str:
-        """
-        Retrieves the raw text content of the control.
-        """
+        """Returns the plain text content of the control."""
         if self.core:
-            return self.core.get_text()
+            return self.core.get_text().replace('\r\n', '\n').replace('\r', '\n')
         return self.pending_text if self.pending_text is not None else ""
 
     def text(self) -> str:
+        """Alias for toPlainText() for Qt compatibility."""
         return self.toPlainText()
 
     def setText(self, text: str):
-        """
-        Sets the entire text content.
-        """
+        """Replaces all content in the control."""
         if self.core and self.core.edit_hwnd:
             self.core.set_text(text)
         else:
             self.pending_text = text
 
     def clear(self):
-        """
-        Resets the control's content (full clear).
-        """
+        """Clears the content of the control."""
         if self.core:
             self.core.clear()
         else:
             self.pending_text = ""
 
     def append(self, text: str):
-        """
-        Appends a text sequence to the end of the document with automatic scrolling.
-        """
+        """Appends text at the end with automatic scrolling."""
         if self.core:
             self._appending = True
             try:
@@ -243,9 +303,7 @@ class CTextEdit(QWidget):
                 self.pending_text = text
 
     def setReadOnly(self, readonly: bool):
-        """
-        Configures the read-only attribute of the control.
-        """
+        """Enables or disables read-only mode."""
         if self.core:
             self.core.set_readonly(readonly)
         else:
@@ -253,24 +311,23 @@ class CTextEdit(QWidget):
 
     def setFont(self, *args):
         """
-        Configures typographic attributes.
+        Sets the control's font.
+
+        Two accepted forms:
+            setFont(QFont)                    : QFont object
+            setFont(name, size, bold, italic) : explicit attributes
         """
         if len(args) == 1 and isinstance(args[0], QFont):
             font = args[0]
-            name = font.family()
-            size = font.pointSize()
-            bold = font.bold()
-            italic = font.italic()
-            self._set_font_impl(name, size, bold, italic)
+            self._set_font_impl(
+                font.family(), font.pointSize(), font.bold(), font.italic()
+            )
         elif len(args) == 4:
             self._set_font_impl(*args)
         else:
             raise TypeError("setFont() accepts either QFont or (str, int, bool, bool)")
 
     def _set_font_impl(self, name: str, size: int, bold: bool, italic: bool):
-        """
-        Internal implementation of font setting.
-        """
         if self.core:
             self.core.set_font(name, size, bold, italic)
         else:
@@ -278,17 +335,19 @@ class CTextEdit(QWidget):
 
     def setAlignment(self, alignment):
         """
-        Sets the horizontal alignment of the current paragraph.
+        Sets text alignment.
+
+        Accepted values:
+            Qt.AlignLeft, Qt.AlignCenter, Qt.AlignRight
+            or strings: "left", "center", "right", "auto"
         """
         if isinstance(alignment, Qt.Alignment):
-            if alignment == Qt.AlignLeft:
-                a = "left"
-            elif alignment == Qt.AlignCenter:
-                a = "center"
-            elif alignment == Qt.AlignRight:
-                a = "right"
-            else:
-                a = "auto"
+            mapping = {
+                Qt.AlignLeft: "left",
+                Qt.AlignCenter: "center",
+                Qt.AlignRight: "right",
+            }
+            a = mapping.get(alignment, "auto")
         else:
             a = alignment
         if self.core:
@@ -297,57 +356,87 @@ class CTextEdit(QWidget):
             self.pending_styles.append(('set_alignment', (a,)))
 
     def setTextColor(self, *args):
-        """
-        Sets the foreground (text) color of the selected text.
-        """
+        """Sets the color of selected text."""
         if self.core:
             self.core.set_text_color(*args)
         else:
             self.pending_styles.append(('set_text_color', args))
 
     def setBackgroundColor(self, *args):
-        """
-        Sets the background color of the control.
-        """
+        """Sets the control's background color."""
         if self.core:
             self.core.set_background_color(*args)
         else:
             self.pending_styles.append(('set_background_color', args))
 
-    # --------------------------------------------------------------------
-    # Qt events
-    # --------------------------------------------------------------------
-    def resizeEvent(self, event):
-        if self.core:
-            self.core.resize(0, 0, self.width(), self.height())
-        super().resizeEvent(event)
+    # ------------------------------------------------------------------ #
+    #  Qt Events                                                         #
+    # ------------------------------------------------------------------ #
 
     def showEvent(self, event):
         """
-        Recreate core if necessary when the widget is redisplayed
+        Creates the RichEdit on first appearance.
+        Redisplays the Win32 RichEdit after a hide().
         """
-        if self._is_hidden and not self.core and not self._destroyed:
-            logger.debug("showEvent: recreating core after hide")
-            self._create()
-        self._is_hidden = False
         super().showEvent(event)
+        if self.core and self.core.edit_hwnd:
+            win32gui.ShowWindow(self.core.edit_hwnd, 5)  # SW_SHOW
+            # Delay to let Qt recalculate layout before resize
+            QTimer.singleShot(50, lambda: self.core.resize(
+                0, 0, max(self.width(), 1), max(self.height(), 1)
+            ) if self.core and self.core.edit_hwnd else None)
+        elif self.core is None and not self._destroyed:
+            QTimer.singleShot(0, self._create)
 
     def hideEvent(self, event):
         """
-        Mark widget as hidden without destroying core
+        Hides the Win32 RichEdit without destroying it.
+        Content and state are preserved for a subsequent show().
         """
-        self._is_hidden = True
+        if self.core and self.core.edit_hwnd:
+            win32gui.ShowWindow(self.core.edit_hwnd, 0)  # SW_HIDE
         super().hideEvent(event)
 
+    def resizeEvent(self, event):
+        """Resizes the Win32 RichEdit with the Qt widget."""
+        super().resizeEvent(event)
+        if self.core and self.core.edit_hwnd:
+            self.core.resize(0, 0, max(self.width(), 1), max(self.height(), 1))
+
     def closeEvent(self, event):
-        """
-        Clean up only when widget is actually closed
-        """
+        """Cleans up Win32 resources on close."""
         if self.core:
             self.core.cleanup()
-            self.core = None
         self._destroyed = True
         super().closeEvent(event)
+
+    @classmethod
+    def api(cls):
+        show_api()
+
+    def _poll_changes(self):
+        if not self.core or not self.core.edit_hwnd:
+            return
+
+        current_text = self.core.get_text()
+        if current_text != self._last_text:
+            self._last_text = current_text
+            self.textChanged.emit()
+
+        sel = win32gui.SendMessage(
+            self.core.edit_hwnd, win32con.EM_GETSEL, 0, 0
+        )
+        start = sel & 0xFFFF
+        end   = (sel >> 16) & 0xFFFF
+        current_sel = (start, end)
+
+        if current_sel != self._last_sel:
+            self._last_sel = current_sel
+            # cursorPositionChanged = always if cursor moves
+            self.cursorPositionChanged.emit()
+            # selectionChanged = only if actual selection
+            if start != end:
+                self.selectionChanged.emit()
 
 # ###########################################################################
 # CLabel
@@ -474,11 +563,15 @@ class CLabel(QLabel):
         except Exception:
             logger.exception("CLabel.setPrefix: failed")
 
+
+
+
+
 # ###########################################################################
 # CButton
 # ###########################################################################
 
-class CButton(QPushButton):
+class CButton(CMouseEventMixin, QPushButton):
     """
     Push button (QPushButton) optimized for accessibility.
 
@@ -519,11 +612,6 @@ class CButton(QPushButton):
         else:
             super().keyPressEvent(event)
 
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        # Block mouse click if disabled
-        if self._enabled_state:
-            super().mousePressEvent(event)
-
     # ------------------------------------------------------------------ #
     # Public                                                             #
     # ------------------------------------------------------------------ #
@@ -555,6 +643,7 @@ class CButton(QPushButton):
     def setDisabled(self, disabled: bool) -> None:
         """Overrides setDisabled for consistency with setEnabled."""
         self.setEnabled(not disabled)
+
 
 # ###########################################################################
 # CLineEdit
@@ -600,7 +689,7 @@ class CLineEdit(QLineEdit):
 # CComboBox
 # ###########################################################################
 
-class CComboBox(QComboBox):
+class CComboBox(CMouseEventMixin, QComboBox):
     """
     Custom dropdown list (ComboBox) for optimal accessibility.
 
@@ -647,10 +736,6 @@ class CComboBox(QComboBox):
         else:
             super().keyPressEvent(event)
 
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        if self._enabled_state:
-            super().mousePressEvent(event)
-
     # ------------------------------------------------------------------ #
     # Public                                                             #
     # ------------------------------------------------------------------ #
@@ -676,7 +761,7 @@ class CComboBox(QComboBox):
 # CListWidget
 # ###########################################################################
 
-class CListWidget(QListWidget):
+class CListWidget(CMouseEventMixin, QListWidget):
     """
     List widget (ListWidget) adapted for accessible interaction.
 
@@ -709,10 +794,6 @@ class CListWidget(QListWidget):
             event.accept()
         else:
             super().keyPressEvent(event)
-
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-        if self._enabled_state:
-            super().mousePressEvent(event)
 
     # ------------------------------------------------------------------ #
     # Public                                                             #

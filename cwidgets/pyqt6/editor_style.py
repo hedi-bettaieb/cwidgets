@@ -21,7 +21,6 @@ from .editor_core import EditorCore
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
 
-
 # ============================================================================
 # RichEdit constants for CHARFORMAT2
 # ============================================================================
@@ -58,6 +57,24 @@ VALID_ALIGNMENTS = {
 # Arabic detection for auto alignment
 UNICODE_ARABIC_START = 0x0600
 UNICODE_ARABIC_END = 0x06FF
+
+EM_STREAMOUT = 0x044A
+SF_RTF       = 0x0002
+
+EDITSTREAMCALLBACK = ctypes.WINFUNCTYPE(
+    ctypes.c_ulong,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.POINTER(ctypes.c_ulong)
+)
+
+class EDITSTREAM(ctypes.Structure):
+    _fields_ = [
+        ("dwCookie",    ctypes.c_void_p),
+        ("dwError",     ctypes.c_ulong),
+        ("pfnCallback", ctypes.c_void_p),
+    ]
 
 # ============================================================================
 # Win32 structures (defined once)
@@ -511,3 +528,40 @@ class EditorStyle(EditorCore):
         for val in (r, g, b):
             if not isinstance(val, int) or not (0 <= val <= 255):
                 raise ValueError(f"Invalid RGB: {val}")
+
+    def get_rtf(self) -> str:
+        if not self._is_valid():
+            return ""
+        try:
+            chunks = []
+
+            def callback(dwCookie, pbBuff, cb, pcb):
+                buf = (ctypes.c_char * cb)()
+                ctypes.memmove(buf, pbBuff, cb)
+                chunks.append(bytes(buf))
+                pcb[0] = cb
+                return 0
+
+            cb_func = EDITSTREAMCALLBACK(callback)
+            self._rtf_cb = cb_func
+
+            es = EDITSTREAM()
+            es.dwCookie    = 0
+            es.dwError     = 0
+            es.pfnCallback = ctypes.cast(cb_func, ctypes.c_void_p).value
+
+            _send_message(
+                self.edit_hwnd,
+                EM_STREAMOUT,
+                SF_RTF,
+                ctypes.addressof(es)
+            )
+
+            self._rtf_cb = None
+
+            raw = b"".join(chunks)
+            return raw.decode("latin-1")
+
+        except Exception as e:
+            logger.exception("get_rtf error")
+            return ""

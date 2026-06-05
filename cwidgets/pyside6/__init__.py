@@ -35,8 +35,12 @@ from cwidgets.pyside6.widgets import (
     CTextEdit,
 )
 
+# --------------------------------------------------
+
 # Current library version
-__version__ = "0.1.2"
+__version__ = "0.1.3"
+
+# --------------------------------------------------
 
 # Public API exports
 __all__ = [

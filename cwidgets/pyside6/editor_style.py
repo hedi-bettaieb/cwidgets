@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 editor_style.py - Formatting layer
 
@@ -20,7 +22,6 @@ from .editor_core import EditorCore
 # ============================================================================
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
-
 
 # ============================================================================
 # RichEdit constants for CHARFORMAT2
@@ -58,6 +59,24 @@ VALID_ALIGNMENTS = {
 # Arabic detection for auto alignment
 UNICODE_ARABIC_START = 0x0600
 UNICODE_ARABIC_END = 0x06FF
+
+EM_STREAMOUT = 0x044A
+SF_RTF       = 0x0002
+
+EDITSTREAMCALLBACK = ctypes.WINFUNCTYPE(
+    ctypes.c_ulong,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_ulong,
+    ctypes.POINTER(ctypes.c_ulong)
+)
+
+class EDITSTREAM(ctypes.Structure):
+    _fields_ = [
+        ("dwCookie",    ctypes.c_void_p),
+        ("dwError",     ctypes.c_ulong),
+        ("pfnCallback", ctypes.c_void_p),
+    ]
 
 # ============================================================================
 # Win32 structures (defined once)
@@ -147,14 +166,14 @@ class EditorStyle(EditorCore):
         """Initializes the style manager with default values."""
         super().__init__()
         self._readonly = False
-        self._bg_color = (255, 255, 255)   # white
-        self._text_color = (0, 0, 0)       # black
+        self._bg_color = (255, 255, 255)
+        self._text_color = (0, 0, 0)
         self._alignment = 'auto'
         self._font_name = ''
         self._font_size = 11
         self._font_bold = False
         self._font_italic = False
-        self._pf_cache = PARAFORMAT2()      # cache reused for performance
+        self._pf_cache = PARAFORMAT2()
 
     # ------------------------------------------------------------------
     # Color conversion utility method
@@ -299,7 +318,7 @@ class EditorStyle(EditorCore):
             cf.cbSize = ctypes.sizeof(CHARFORMAT2)
             cf.dwMask = CFM_COLOR | CFM_SIZE | CFM_BOLD | CFM_ITALIC
             cf.crTextColor = r | (g << 8) | (b << 16)
-            cf.yHeight = self._font_size * 20   # conversion points → twips
+            cf.yHeight = self._font_size * 20
 
             if self._font_name:
                 cf.dwMask |= CFM_FACE | CFM_CHARSET
@@ -345,8 +364,8 @@ class EditorStyle(EditorCore):
         Sets the text color.
 
         Usage:
-            set_text_color(255, 0, 0)   # RGB
-            set_text_color("red")       # color name
+            set_text_color(255, 0, 0)
+            set_text_color("red")
 
         Args:
             *args: Either 1 color name, or 3 RGB integers
@@ -374,8 +393,8 @@ class EditorStyle(EditorCore):
         Sets the editor background color.
 
         Usage:
-            set_background_color(255, 255, 255)   # RGB
-            set_background_color("white")         # color name
+            set_background_color(255, 255, 255)
+            set_background_color("white")
 
         Args:
             *args: Either 1 color name, or 3 RGB integers
@@ -511,3 +530,40 @@ class EditorStyle(EditorCore):
         for val in (r, g, b):
             if not isinstance(val, int) or not (0 <= val <= 255):
                 raise ValueError(f"Invalid RGB: {val}")
+
+    def get_rtf(self) -> str:
+        if not self._is_valid():
+            return ""
+        try:
+            chunks = []
+
+            def callback(dwCookie, pbBuff, cb, pcb):
+                buf = (ctypes.c_char * cb)()
+                ctypes.memmove(buf, pbBuff, cb)
+                chunks.append(bytes(buf))
+                pcb[0] = cb
+                return 0
+
+            cb_func = EDITSTREAMCALLBACK(callback)
+            self._rtf_cb = cb_func
+
+            es = EDITSTREAM()
+            es.dwCookie    = 0
+            es.dwError     = 0
+            es.pfnCallback = ctypes.cast(cb_func, ctypes.c_void_p).value
+
+            _send_message(
+                self.edit_hwnd,
+                EM_STREAMOUT,
+                SF_RTF,
+                ctypes.addressof(es)
+            )
+
+            self._rtf_cb = None
+
+            raw = b"".join(chunks)
+            return raw.decode("latin-1")
+
+        except Exception as e:
+            logger.exception("get_rtf error")
+            return ""

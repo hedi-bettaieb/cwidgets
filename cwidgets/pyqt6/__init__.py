@@ -35,10 +35,14 @@ from cwidgets.pyqt6.widgets import (
     CTextEdit,
 )
 
-# Current library version
-__version__ = "0.1.2"
+# --------------------------------------------------
 
-# Public API exports
+# Version actuelle de la bibliothèque
+__version__ = "0.1.3"
+
+# --------------------------------------------------
+
+# Exports de l'API publique
 __all__ = [
     "CButton",
     "CLabel",

@@ -5,9 +5,14 @@ Handles creation, subclassing and basic operations on the RICHEDIT20W control.
 This module is Qt-independent and only depends on win32gui and ctypes.
 """
 
+import sys
 import ctypes
 from ctypes import wintypes
 import logging
+from datetime import datetime
+import os
+import tempfile
+
 import win32gui
 import win32con
 
@@ -57,6 +62,7 @@ MAX_TEXT_LENGTH = 10_000_000  # Safeguard: 10 MB
 logger = logging.getLogger("cwidgets")
 logger.debug(f"logger initialized in {__file__}")
 
+# --------------------------------------------------
 
 class EditorCore:
     """
@@ -71,11 +77,6 @@ class EditorCore:
     - Providing an accessible name to NVDA via an invisible STATIC label
     """
 
-    # Class variable1 :shared across all instances
-    _subclassed_windows = {}
-    # Class variable2 : Last instance having focus
-    _last_focused_editor = None 
-    
     def __init__(self):
         """
         Initializes the RichEdit manager.
@@ -103,7 +104,6 @@ class EditorCore:
         self._new_main_proc = None
         self._focus_callback = None
         self._saved_sel = (0, 0)
-        self._cleaned_up = False
 
         # Load riched20.dll
         self._dll_handle = ctypes.windll.kernel32.LoadLibraryW("riched20.dll")
@@ -192,6 +192,7 @@ class EditorCore:
         logger.debug("RichEdit control subclassing installed")
 
         win32gui.SendMessage(self.edit_hwnd, win32con.EM_SETSEL, 0, 0)
+
         return self.edit_hwnd
 
     def _subclass_proc(self, hwnd, msg, wparam, lparam):
@@ -384,17 +385,13 @@ class EditorCore:
         except Exception as e:
             logger.exception("Error in _transfer_focus_to_parent")
 
-
-
     def subclass_main(self, main_hwnd, focus_callback):
         """
-        Subclasses the main Qt window's WndProc to intercept WM_ACTIVATEAPP.
-        Only subclasses once per window handle — subsequent editors register
-        their callback without installing a new WndProc.
+        Subclasses the main Qt window's WndProc.
 
         Args:
-            main_hwnd (int): Win32 handle of the main application window.
-            focus_callback (callable): Called when the application regains focus.
+            main_hwnd (int): Win32 handle of the main window
+            focus_callback (callable): Function called when the application regains focus
         """
         if not user32.IsWindow(main_hwnd):
             logger.warning(f"subclass_main: invalid main window handle {main_hwnd}")
@@ -403,53 +400,23 @@ class EditorCore:
         self._main_hwnd = main_hwnd
         self._focus_callback = focus_callback
 
-        # window already subclassed by another editor — register callback only
-        if main_hwnd in EditorCore._subclassed_windows:
-            EditorCore._subclassed_windows[main_hwnd]['callbacks'].append(focus_callback)
-            # share the existing proc references with this editor
-            self._old_main_proc = EditorCore._subclassed_windows[main_hwnd]['old_proc']
-            self._new_main_proc = EditorCore._subclassed_windows[main_hwnd]['new_proc']
-            logger.debug(f"subclass_main: callback registered for existing subclass hwnd={main_hwnd}")
-            return
-
-        # first editor for this window — install the subclass
         def main_proc(hwnd, msg, wparam, lparam):
             try:
-                if msg == win32con.WM_ACTIVATEAPP and wparam == 1:
-                    # restore focus to the last editor that had focus before Alt+Tab
-                    last = EditorCore._last_focused_editor
-                    if last and last._focus_callback:
-                        QTimer.singleShot(50, last._focus_callback)
-            except Exception:
-                logger.exception("main_proc: error handling WM_ACTIVATEAPP")
+                if msg == win32con.WM_ACTIVATEAPP and wparam == 1 and self._had_focus:
+                    QTimer.singleShot(50, self._focus_callback)
+            except Exception as e:
+                logger.exception("Error in main_proc")
+            return CallWindowProcW(self._old_main_proc, hwnd, msg, wparam, lparam)
 
-            # always forward to the original WndProc
-            entry = EditorCore._subclassed_windows.get(main_hwnd)
-            if entry and entry['old_proc']:
-                return CallWindowProcW(entry['old_proc'], hwnd, msg, wparam, lparam)
-            return 0
+        self._new_main_proc = WNDPROC(main_proc)
+        addr = ctypes.cast(self._new_main_proc, ctypes.c_void_p).value
+        self._old_main_proc = SetWindowLongPtrW(main_hwnd, -4, ctypes.c_int64(addr).value)
 
-        new_proc = WNDPROC(main_proc)
-        addr = ctypes.cast(new_proc, ctypes.c_void_p).value
-        old_proc = SetWindowLongPtrW(main_hwnd, -4, ctypes.c_int64(addr).value)
-
-        if not old_proc:
-            logger.error("subclass_main: SetWindowLongPtrW failed for hwnd={main_hwnd}")
-            return
-
-        # register in the class-level dictionary shared across all instances
-        EditorCore._subclassed_windows[main_hwnd] = {
-            'old_proc': old_proc,
-            'new_proc': new_proc,
-            'callbacks': [focus_callback]
-        }
-
-        # store proc references for this editor instance
-        self._old_main_proc = old_proc
-        self._new_main_proc = new_proc
-
-        logger.debug(f"subclass_main: WndProc installed for hwnd={main_hwnd}")
-
+        if not self._old_main_proc:
+            self._new_main_proc = None
+            logger.error("SetWindowLongPtrW for main window failed")
+        else:
+            logger.debug("Main window subclassing installed")
 
     def _is_valid(self):
         """
@@ -517,7 +484,8 @@ class EditorCore:
 
         Sends an EVENT_OBJECT_FOCUS event after 100ms so NVDA announces the name.
         """
-        EditorCore._last_focused_editor = self
+        self._focus_count = getattr(self, '_focus_count', 0) + 1
+
         if not self._is_valid():
             logger.warning("set_focus called while control is not valid")
             return
@@ -549,66 +517,41 @@ class EditorCore:
         except Exception as e:
             logger.exception("Error in resize")
 
-
-    
     def cleanup(self):
         """
         Restores original WndProcs, destroys the STATIC label and releases resources.
-        Call this method before destroying the parent Qt widget.
-        Handles shared subclassing — restores main WndProc only when last editor is cleaned up.
-        """
-        # avoid double cleanups
-        if self._cleaned_up:
-            logger.debug("cleanup already called, skipping")
-            return
-        self._cleaned_up = True
 
+        Call this method before destroying the parent Qt widget.
+        """
         logger.debug("cleanup called")
 
-        # destroy STATIC label
         if self._label_hwnd:
             try:
                 win32gui.DestroyWindow(self._label_hwnd)
                 logger.debug("STATIC label destroyed")
-            except Exception:
+            except Exception as e:
                 logger.exception("Error destroying STATIC label")
             self._label_hwnd = None
 
-        # restore RichEdit WndProc
         if self.old_edit_proc and self.edit_hwnd and user32.IsWindow(self.edit_hwnd):
             try:
                 SetWindowLongPtrW(self.edit_hwnd, -4, self.old_edit_proc)
                 logger.debug("RichEdit control procedure restored")
-            except Exception:
+            except Exception as e:
                 logger.exception("Error restoring old_edit_proc")
 
-        # restore main window WndProc — only when last editor is cleaned up
-        if self._main_hwnd and user32.IsWindow(self._main_hwnd):
-            entry = EditorCore._subclassed_windows.get(self._main_hwnd)
-            if entry:
-                # remove this editor's callback from the shared list
-                if self._focus_callback in entry['callbacks']:
-                    entry['callbacks'].remove(self._focus_callback)
-                    logger.debug("focus callback removed from shared subclass")
-                # restore original WndProc only if no more editors registered
-                if not entry['callbacks']:
-                    try:
-                        SetWindowLongPtrW(self._main_hwnd, -4, entry['old_proc'])
-                        del EditorCore._subclassed_windows[self._main_hwnd]
-                        logger.debug("main WndProc restored — last editor cleaned up")
-                    except Exception:
-                        logger.exception("Error restoring main WndProc")
+        if self._old_main_proc and self._main_hwnd and user32.IsWindow(self._main_hwnd):
+            try:
+                SetWindowLongPtrW(self._main_hwnd, -4, self._old_main_proc)
+                logger.debug("Main window procedure restored")
+            except Exception as e:
+                logger.exception("Error restoring _old_main_proc")
 
-        # clear last focused editor if it was this instance
-        if EditorCore._last_focused_editor is self:
-            EditorCore._last_focused_editor = None
-
-        # free riched20.dll
         if self._dll_handle:
             try:
                 ctypes.windll.kernel32.FreeLibrary(self._dll_handle)
                 logger.debug("riched20.dll freed")
-            except Exception:
+            except Exception as e:
                 logger.exception("Error during FreeLibrary")
 
         self.old_edit_proc = None

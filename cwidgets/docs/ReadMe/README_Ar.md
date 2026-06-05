@@ -1,44 +1,46 @@
-دليل المستخدم - مكتبة CWidgets V0.1.2:
+# دليل المستخدم - مكتبة CWidgets V0.1.3
 
-## مقدمة
-CWidgets: قوتك في البرمجة بلا حدود
-حول عوائق Qt إلى فرص إبداعية
-CWidgets هي مكتبة بايثون متخصصة تمنح المطورين المكفوفين السيطرة الكاملة على واجهات PyQt6 وPySide6. 
-لقد إنتهى زمن القيود مع QTextEdit،  فمنذ الآن، يمكنك تصميم واجهات تحتوي على مربعات تحرير متعددة الأسطر بكل حرية وتوافقية.
-المكتبة توفر للمطور الكفيف توافقية مطلقة فجميع العناصر مصممة لتعمل بسلاسة تامة مع قارئ الشاشة NVDA.
-إستمرارية الإبداع:لا حاجة لتعلم أدوات جديدة بل واصل كتابة أكوادك التي تعودت عليها مع الحفاظ على نفس الدوال والوظائف.
-هندسة ذكية:كل عنصر في CWidgets يرث خصائص عناصر Qt الأصلية، مما يضمن لك أداءً قياسياً مع حلول جذرية لمشاكل التوافقية.
-ما الذي سيتغيّر عند كتابة أكواد برامجك التي تصممها بنوافذ PyQt6 و PySide6 ؟ 
-كل ما تحتاجه هو استبدال الحرف الأول فقط (C عوضاً عن Q):
-CTextEdit بدلاً من QTextEdit.
-CButton بدلاً من QPushButton.
-حيث ترمز C إلى Custom أو مخصصة
-مرونة تامة في العمل ، فالمكتبة تدعم بيئة العمل التي تفضلها بنفس الكفاءة:
-مع PySide6:
+## المقدمة
+
+CWidgets هي مكتبة بايثون متخصصة تمنح المطورين المكفوفين
+تحكمًا كاملاً في واجهات PyQt6 و PySide6.
+
+لقد انتهت حقبة القيود مع QTextEdit — يمكنك الآن تصميم
+واجهات تحتوي على مناطق تحرير متعددة الأسطر بحرية وتوافق كامل مع NVDA.
+
+كل ما عليك فعله هو استبدال الحرف الأول (C بدلاً من Q):
+- CTextEdit بدلاً من QTextEdit
+- CButton بدلاً من QPushButton
+- حيث تعني C مخصصة (Custom)
+
+تدعم المكتبة بيئتي Qt:
+
+# PySide6
 from cwidgets.pyside6 import CButton, CLabel, CLineEdit
 
-مع PyQt6:
+# PyQt6
 from cwidgets.pyqt6 import CButton, CLabel, CLineEdit
-CWidgets: برمج بكل ثقة، وصمم بلا قيود.
 
-##المكونات المتوفرة :
-7 عناصر مخصصة متوافقة تماما توفرها لك هذه المكتبة و هي :
-1-CTextEdit 
-2-CButton 
-3-CLabel
-4-CLineEdit 
-5-CComboBox
-6-CListWidget 
-7-CMessageBox 
+CWidgets: برمج بثقة، صمّم بلا حدود.
+
+## المكونات المتاحة
+
+7 مكونات مخصصة متوافقة بالكامل مع NVDA:
+
+1. CTextEdit
+2. CButton
+3. CLabel
+4. CLineEdit
+5. CComboBox
+6. CListWidget
+7. CMessageBox
 
 ## التثبيت
 
-    pip install cwidgets
-
+pip install cwidgets
 
 ## الوصول إلى المساعدة
 
-بعد التثبيت، أبدأ بالتعرف على المكتبة و مكوناتها و خصائصها و كيفية إستخدامها من خلال هذه الدوال :
 import cwidgets
 
 # قائمة بجميع المكونات المتاحة
@@ -49,443 +51,507 @@ cwidgets.sections()
 
 # فتح الدليل الكامل في المتصفح
 cwidgets.show_help()
+cwidgets.show_help(lang="fr")
 cwidgets.show_help(lang="ar")
 
-# فتح أحد المكونات بالتحديد مباشرة
-cwidgets.show_help(lang="ar", goto="CButton")
-cwidgets.show_help(lang="ar", goto="CTextEdit")
+# فتح مكون معين مباشرة
+cwidgets.show_help(lang="fr", goto="CButton")
+cwidgets.show_help(lang="fr", goto="CTextEdit")
 
-# فتح قسم محدد مباشرة
-cwidgets.show_help(lang="ar", goto="introduction")
-cwidgets.show_help(lang="ar", goto="installation")
+# فتح قسم معين مباشرة
+cwidgets.show_help(lang="fr", goto="introduction")
+cwidgets.show_help(lang="fr", goto="installation")
+
+# واجهة برمجة التطبيقات لـ CTextEdit — العرض من الطرفية
+cwidgets.ctextedit.show()          # الأسماء فقط
+cwidgets.ctextedit.show_details()  # الأسماء + الأوصاف
 
 ## المشاكل الشائعة التي تم حلها
 
-#CTextEdit : 
-مربع تحرير متعدد الأسطر: يحل CTextEdit المشكلة الأساسية لـ QTextEdit، غير المتوافق مع NVDA.
-#CComboBox & CListWidget: 
-فصل التنقل عن التفعيل : فصل إجراءات التنقل (الأسهم) عن إجراءات التفعيل (Enter/Space) لتجنب التفعيلات غير المقصودة.
-التعطيل المتاح: الحفاظ على الإعلان بواسطة NVDA حتى عندما يكون المكون معطلاً .
-#CButton : 
-التفعيل ب enter, return, space & mouse .
-توافقية حتى في حالة التعطيل .
-#CLabel 
-تعزيز توافقية العناوين والملصقات
-#CLineEdit : 
-يمكنك من إسترجاع النص من داخل العنصر من خلال الضغط enter دون أي سطر كود إضافي .
-#CMessageBox :
-محاورة رسائل ذاتية الإنهيار .
-يمكنك تحديد زمن تختفي بعده المحاورة تلقائيا .
-#بإستثناء CTextEdit ، كل المكونات الأخرى ترث من QT و بالتالي هي تحتفظ بكل خصائصها و وظائفها الأساسية .
-## تفاصيل المكونات : 
-التعريف ،الإنشاء ، الخصائص ، الإستخدام .
+**CTextEdit** — منطقة تحرير متعددة الأسطر: يحل مشكلة عدم توافق QTextEdit مع NVDA.
+
+**CComboBox & CListWidget** — فصل التنقل/التفعيل: يتجنب التفعيلات
+غير المقصودة أثناء التنقل باستخدام مفاتيح الأسهم. يتم الحفاظ على إمكانية الوصول لـ NVDA
+حتى في الوضع المعطل.
+
+**CButton** — التفعيل عبر Enter، وBackspace، وSpace والنقر. التوافق مع NVDA
+حتى عند التعطيل.
+
+**CLabel** — تحسين التوافق للعناوين والملصقات.
+
+**CLineEdit** — استرداد النص عبر Enter دون الحاجة إلى كتابة كود إضافي.
+
+**CMessageBox** — مربعات حوار تغلق تلقائيًا مع تأخير قابل للتكوين.
+
+باستثناء CTextEdit، ترث جميع المكونات من Qt وتحتفظ
+بجميع خصائصها ووظائفها الأصلية.
+
+## تفاصيل المكونات
+
 ## CTextEdit
 
 ### التعريف
-CTextEdit هو مربع تحرير متعدد الأسطر متوافق تماما مع NVDA .
+CTextEdit هي منطقة تحرير متعددة الأسطر متوافقة بالكامل مع NVDA،
+تعتمد على محرك Win32 RichEdit الأصلي.
+
 ### لماذا — المشكلة الأساسية
 - QTextEdit الأصلي في Qt غير متوافق مع NVDA.
-— المطور الكفيف لا يمكنه القراءة أو الكتابة في هذا العنصر .
-هذا هو الحاجز الذي يحول دون المكفوفين و تصميم واجهات QT تحتوي على مربعات تحرير متعددة الأسطر .
-إلى حد ظهور هذه المكتبة لم تعرف حلولا لهذه المشكلة يستخدمها المكفوفون .
+- لا يمكن للمطورين المكفوفين قراءة أو كتابة في هذا العنصر.
+- حتى ظهور هذه المكتبة، لم تكن هناك حلول معروفة.
 
 ### الحل — RichEdit Win32 مدمج في Qt
-الحل الذي أتت به هذه المكتبة هو دمج عنصر تحكم Win32 RichEdit مباشرة في نافذة QT .
-RichEdit Win32 هو إفتراضيا متوافق تماما مع NVDA .
-المرحلة المعقدة في تصميم الحل هي دمجه في نافذة Qt مع الحفاظ على إمكانية الوصول هذه.
-كما ضمنت هذه المكتبة الإستخدام الإفتراضي للأوامر في QT .
-بنية العنصر QTextEdit :
--QTextEdit 
--EditorStyle        — الأنماط، الخط، اللون، المحاذاة
--RichEdit Win32  — المحرك الأصلي  المتوافق 
+يدمج الحل مباشرة عنصر تحكم RichEdit Win32 في نافذة Qt.
+RichEdit Win32 متوافق أصلاً مع NVDA.
+
+البنية الداخلية:
+- CTextEdit — واجهة Qt العامة
+- EditorStyle — الأنماط، الخط، اللون، المحاذاة
+- RichEdit Win32 — المحرك الأصلي المتوافق مع NVDA
 
 ### الميزات
-- إمكانية الوصول الكاملة بواسطة NVDA: القراءة، الكتابة، التنقل، التحديد.
-- واجهة برمجة تطبيقات متوافقة مع QTextEdit: setText, toPlainText, append, clear, setReadOnly.
+- إمكانية وصول كاملة لـ NVDA: القراءة، الكتابة، التنقل، التحديد.
+- واجهة برمجة تطبيقات موسعة: 25 طريقة عامة متاحة.
 - نص منسق: الخط، الحجم، غامق، مائل، اللون، المحاذاة.
-- إدارة غير متزامنة: الأنماط والنص في الانتظار إذا لم يكن مقبض Win32 متاحًا بعد.
-- التركيز الذكي: استعادة التركيز عند العودة إلى التطبيق.
+- الإشارات: textChanged، selectionChanged، cursorPositionChanged.
+- إدارة غير متزامنة: الأنماط والنص يتم وضعها في قائمة الانتظار قبل التهيئة.
+- التركيز الذكي: يتم استعادته تلقائيًا بعد Alt+Tab.
 
-### الاستخدام
+### الاستيراد
 
-    # PySide6
-    from cwidgets.pyside6 import CTextEdit
-    # PyQt6
-    from cwidgets.pyqt6 import CTextEdit
+# PySide6
+from cwidgets.pyside6 import CTextEdit
+# PyQt6
+from cwidgets.pyqt6 import CTextEdit
 
-    # إنشاء
-    self.editor = CTextEdit(self, accessible_name="إسم المربع")
-    layout.addWidget(self.editor)
+### الإنشاء
 
-    # إدراج نص داخل المربع
-    self.editor.setText("مرحبًا!")
-# إسترجاع النص من داخل المربع :
-    text = self.editor.text()
-    text = self.editor.toPlainText()
-#إضافة نص إلى النص الأصلي 
-    self.editor.append("سطر جديد.")
-#مسح النص لإفراغ المربع  
-    self.editor.clear()
+self.editor = CTextEdit(self, accessible_name="اسم المنطقة")
+layout.addWidget(self.editor)
 
-    # جعل المربع  للقراءة فقط
-    self.editor.setReadOnly(True)
-#تعطيل للقراءة فقط ليصبح المربع للكتابة و القراءة 
-    self.editor.setReadOnly(False)
+### واجهة برمجة التطبيقات المتاحة
 
-    # الخط — QFont أو (str, int, bool, bool)
-    self.editor.setFont("Arial", 12, True, False)  # الاسم، الحجم، غامق، مائل
+# عرض جميع الطرق من الطرفية
+import cwidgets
+cwidgets.ctextedit.show()          # الأسماء فقط
+cwidgets.ctextedit.show_details()  # الأسماء + الأوصاف
 
-    # الألوان — اسم أو مجموعة RGB
-    self.editor.setTextColor("red")
-    self.editor.setTextColor((255, 0, 0))
-    self.editor.setBackgroundColor("yellow")
+# من الكود
+CTextEdit.api()
 
-    # المحاذاة
-    self.editor.setAlignment("left")
-    self.editor.setAlignment("center")
-    self.editor.setAlignment("right")
+### المحتوى
+
+# تعيين المحتوى
+self.editor.setText("مرحبًا!")
+
+# استرداد المحتوى
+text = self.editor.toPlainText()
+text = self.editor.text()          # اسم مستعار لـ toPlainText()
+
+# إضافة نص في النهاية
+self.editor.append("سطر جديد.")
+
+# إدراج في موضع المؤشر
+self.editor.insertPlainText("نص مُدرج\n")
+
+# إدراج HTML في موضع المؤشر
+# يتم إزالة العلامات، <br> و <p> تصبح فواصل أسطر
+self.editor.insertHtml("<p>مرحبًا <b>عالم</b></p>")  # يُدرج: "مرحبًا عالم"
+self.editor.insertHtml("<p>السطر 1</p><br/>السطر 2")   # يُدرج: "السطر 1\nالسطر 2"
+
+# مسح المحتوى
+self.editor.clear()
+
+### التحديد
+
+# تحديد الكل
+self.editor.selectAll()
+
+# استرداد النص المحدد (يُرجع "" إذا لم يكن هناك تحديد)
+text = self.editor.selectedText()
+
+# مثال مُدمج — استرداد كل النص
+self.editor.selectAll()
+text = self.editor.selectedText()
+
+### الخصائص
+
+# عدد الأسطر
+count = self.editor.lineCount()
+
+# للقراءة فقط
+self.editor.setReadOnly(True)    # تفعيل
+self.editor.setReadOnly(False)   # تعطيل
+state = self.editor.isReadOnly() # التحقق
+
+### التنسيق
+
+# الخط — QFont أو (الاسم، الحجم، غامق، مائل)
+self.editor.setFont("Arial", 12, True, False)
+
+# لون النص — الاسم أو (R, G, B)
+self.editor.setTextColor("red")
+self.editor.setTextColor((255, 0, 0))
+
+# لون الخلفية
+self.editor.setBackgroundColor("yellow")
+
+# المحاذاة
+self.editor.setAlignment("left")
+self.editor.setAlignment("center")
+self.editor.setAlignment("right")
 
 ### الألوان المتاحة
 
-    # الأسماء المدعومة
-    "black", "white", "red", "green", "blue", "yellow",
-    "cyan", "magenta", "gray", "darkgray", "lightgray",
-    "orange", "purple", "violet", "pink", "brown",
-    "navy", "teal", "lime", "olive", "maroon",
-    "coral", "salmon", "gold", "silver"
+# الأسماء المدعومة
+"black", "white", "red", "green", "blue", "yellow",
+"cyan", "magenta", "gray", "darkgray", "lightgray",
+"orange", "purple", "violet", "pink", "brown",
+"navy", "teal", "lime", "olive", "maroon",
+"coral", "salmon", "gold", "silver"
 
-    # أو مجموعة RGB
-    (255, 0, 0)    # أحمر
-    (0, 128, 255)  # أزرق فاتح
+# أو RGB
+(255, 0, 0)    # أحمر
+(0, 128, 255)  # أزرق فاتح
 
-### العنوان المرئي اختياري
-accessible_name يُقرأه  NVDA ولكنه غير مرئي بصريًا.
-لإضافة عنوان مرئي، أضف CLabel إلى التخطيط قبل المحرر:
-    self.editor = CTextEdit(self)
-    self.lbl    = CLabel("مربع التحرير:", self , self.editor)
-و هنا من الضروري التنبيه أن إضافة CLabel إلى layout يجب أن تسبق إضافة editor حتى يظهر إسم المربع فوق المربع و ليس تحته .
-    layout.addWidget(self.lbl)
-    layout.addWidget(self.editor)
+### الحافظة
+
+# تعمل الاختصارات Ctrl+C/X/V/Z/Y أصلاً عبر لوحة المفاتيح.
+# تسمح هذه الطرق بالاستخدام البرمجي (مثلاً عبر زر).
+
+self.editor.copy()   # نسخ التحديد
+self.editor.cut()    # قص التحديد
+self.editor.paste()  # لصق
+self.editor.undo()   # تراجع
+self.editor.redo()   # إعادة
+
+### الإشارات
+
+# الاستجابة للتغييرات في الوقت الفعلي
+self.editor.textChanged.connect(self.on_text_changed)
+self.editor.cursorPositionChanged.connect(self.on_cursor_changed)
+self.editor.selectionChanged.connect(self.on_selection_changed)
+
+def on_text_changed(self):
+    print(self.editor.toPlainText())
+
+def on_cursor_changed(self):
+    print("تم تحريك المؤشر")
+
+def on_selection_changed(self):
+    print(self.editor.selectedText())
+
+### السلوك في التخطيطات
+
+لدى CTextEdit حجم أدنى يبلغ 50x50 بكسل لضمان رؤيته.
+
+**الحالة 1 — QVBoxLayout (المحرر وحده في سطره)**
+layout.addWidget(self.editor)
+
+**الحالة 2 — QHBoxLayout مشترك مع QListWidget أو QComboBox**
+بدون `stretch=1`، تأخذ المكونات الأخرى كل المساحة.
+layout = QHBoxLayout()
+layout.addWidget(self.list_widget, 1)
+layout.addWidget(self.editor, 1)
+
+**الحالة 3 — أبعاد ثابتة**
+self.editor = CTextEdit(self, width=400, height=200)
+
+**الحالة 4 — إخفاء / إظهار**
+self.editor.hide()  # يخفي دون تدمير المحتوى
+self.editor.show()  # يعيد العرض مع المحتوى سليمًا
+
+### العنوان المرئي الاختياري
+
+يتم قراءة accessible_name بواسطة NVDA لكنه غير مرئي بصريًا.
+لإضافة عنوان مرئي، استخدم CLabel قبل المحرر في التخطيط:
+
+self.editor = CTextEdit(self)
+self.lbl    = CLabel("منطقة التحرير:", self, self.editor)
+layout.addWidget(self.lbl)
+layout.addWidget(self.editor)
+
 
 ## CLabel
 
 ### التعريف
-CLabel هو ملصق متوافق مع NVDA، يحل محل QLabel.
+CLabel هي ملصقة متوافقة مع NVDA تحل محل QLabel.
 
 ### لماذا؟
-QLabel الأصلي غير مرئي لـ NVDA إلا إذا كان مرتبطًا بـ buddy — وفقط عندما يكون هذا Buddy لديه التركيز.
+QLabel غير مرئي لـ NVDA إلا إذا كان مرتبطًا بـ buddy — وفقط
+عندما يكون هذا الـ buddy لديه التركيز.
 
 ### الحل
-وضعان:
-- الوضع الفردي: متوافق مع NVDA و يتعرف عليه حتى بالتنقل بالتاب .
-- وضع Buddy: عندما يكون CLabel مرتبطا بعنصر آخر .
+- الوضع البسيط: متوافق مع NVDA، يتم التعرف عليه عبر التنقل بالتبويب.
+- وضع الـ buddy: مرتبط بعنصر آخر، يُعلن عنه عندما يكون هذا العنصر لديه التركيز.
 
 ### الميزات
-- تنظيف الاختصارات: &الاسم → "الاسم" لـ NVDA، الاختصار المرئي لـ Qt محفوظ.
-- prefix نص تكميلي مثال عندما نريد التعبير عن حالة status .
-
-- المزامنة الإفتراضية :
-تغيير محتوى الملصق .
-setText()
-تغيير النص التكميلي :
-setPrefix()
-يعيدان المزامنة بدون كود إضافي.
+- تنظيف الاختصارات: `&Name` → "Name" لـ NVDA، مع الحفاظ على الاختصار المرئي.
+- البادئة (prefix): نص إضافي للتعبير عن الحالة.
+- المزامنة التلقائية عبر `setText()` و `setPrefix()`.
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CLabel, CLineEdit
-    # PyQt6
-    from cwidgets.pyqt6 import CLabel, CLineEdit
+# PySide6
+from cwidgets.pyside6 import CLabel, CLineEdit
+# PyQt6
+from cwidgets.pyqt6 import CLabel, CLineEdit
 
-    # الوضع الفردي — يقرأ NVDA النص و يمكن الوصول إليه بالتاب :
-    self.lbl = CLabel("تم حفظ الملف", self)
+# الوضع البسيط
+self.lbl = CLabel("تم حفظ الملف", self)
 
-    # مع prefix — يعلن NVDA: "حالة تم حفظ الملف"
-    self.lbl = CLabel("تم حفظ الملف", self, prefix="حالة")
+# مع بادئة — NVDA يعلن: "حالة تم حفظ الملف"
+self.lbl = CLabel("تم حفظ الملف", self, prefix="حالة")
 
-    # وضع Buddy — يعلن NVDA الملصق عندما يحصل الحقل على التركيز
-    # يجب إضافة الملصق إلى التخطيط قبل حقل الكتابةحتى يظهر الملصق فوق الحقل بصريا  
-    self.edit = CLineEdit(self)
-    self.lbl  = CLabel("الاسم:", self, self.edit)
-    layout.addWidget(self.lbl)
-    layout.addWidget(self.edit)
+# وضع الـ buddy
+self.edit = CLineEdit(self)
+self.lbl  = CLabel("الاسم:", self, self.edit)
+layout.addWidget(self.lbl)
+layout.addWidget(self.edit)
 
-    # التحديث الديناميكي
-    self.lbl.setText("جارٍ المعالجة")
-    self.lbl.setPrefix("خطأ")
+# التحديث الديناميكي
+self.lbl.setText("جاري المعالجة")
+self.lbl.setPrefix("خطأ")
+
 
 ## CButton
 
 ### التعريف
-CButton هو زر يتميز بمزايا إضافية تجعله قابلا للإستخدام دون الحاجة لأسطر كودية يحتاج الزر الأصلي لتلك الأسطر لتفعيل هذه المزايا .
+CButton هو زر يمكن الوصول إليه يحل محل QPushButton.
 
 ### لماذا؟
-- QPushButton الأصلي يقبل فقط Space للتفعيل — Enter و Return يتم تجاهلهما.
-- setEnabled(False) يجعل الزر غير مرئي لـ NVDA، حتى مع setAccessibleDescription.
+- QPushButton يقبل فقط شريط المسافة — يتم تجاهل Enter و Backspace.
+- setEnabled(False) يجعل الزر غير مرئي لـ NVDA.
 
 ### الحل
-- التفعيل يشمل Enter/Return.
-- تعطيل  الزر يتم مع مواصلة التوافقية .
-الزر يبقى بصريا "في حالة نشطة" لكنه لا يعمل.
-و هذا هو الحل:  توفر إمكانية التعطيل مع إستمرار التوافقية عكس QPushButton الذي يختفي عن NVDA لو كان معطلا .
+- التفعيل عبر Enter، وBackspace، وSpace والنقر بالماوس.
+- الوضع المعطل: غير قابل للنقر لكنه مرئي لـ NVDA ("غير متاح").
 
 ### الميزات
-- التفعيل الموسع: Space، Enter، Return، النقر بالماوس.
-- التعطيل المتاح: غير قابل للنقر + يعلن NVDA "غير متاح".
+- تفعيل موسع: Space، Enter، Backspace، النقر بالماوس.
+- التعطيل المتاح: NVDA يعلن "غير متاح".
 - واجهة برمجة تطبيقات مطابقة لـ QPushButton.
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CButton
-    # PyQt6
-    from cwidgets.pyqt6 import CButton
+# PySide6
+from cwidgets.pyside6 import CButton
+# PyQt6
+from cwidgets.pyqt6 import CButton
 
-    self.btn = CButton("حفظ", self)
-    self.btn.clicked.connect(self.on_click)
+self.btn = CButton("حفظ", self)
+self.btn.clicked.connect(self.on_click)
 
-    # تعطيل — يعلن NVDA "غير متاح"، الزر غير قابل للنقر
-    self.btn.setEnabled(False)
-    self.btn.setEnabled(True)
+# تعطيل / إعادة تفعيل
+self.btn.setEnabled(False)
+self.btn.setEnabled(True)
 
-    # تغيير العنوان — أصلي Qt
-    self.btn.setText("عنوان جديد")
-
-    # التحقق من الحالة
-    if self.btn.isEnabled():
-        ...
+# التحقق من الحالة
+if self.btn.isEnabled():
+    ...
 
 ## CLineEdit
+
 ### التعريف
-CLineEdit هو حقل إدخال نص متوافق، يحل محل QLineEdit.
+CLineEdit هو حقل إدخال متوافق يحل محل QLineEdit.
 
 ### لماذا؟
-QLineEdit  يحتاج لسطر كود إضافي لإسترجاع النص .
-CLineEdit يجعل هذا التفعيل تلقائيًا عبر الإشارة validated.
+يتطلب QLineEdit كتابة كود إضافي لاسترداد النص عند التحقق.
+يقوم CLineEdit بأتمتة ذلك عبر الإشارة `validated`.
 
 ### الميزات
-- الإشارة validated تُصدر بالنص الحالي عند كل Enter/Return.
-- placeholderText كمعامل — يُعلن بواسطة NVDA عندما يكون الحقل فارغًا.
+- الإشارة `validated`: ترسل النص عند كل Enter/Backspace.
+- `placeholderText` كمعامل، يُعلن عنه بواسطة NVDA عندما يكون الحقل فارغًا.
 - العنوان عبر CLabel مع buddy.
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CLineEdit, CLabel
-    # PyQt6
-    from cwidgets.pyqt6 import CLineEdit, CLabel
+# PySide6
+from cwidgets.pyside6 import CLineEdit, CLabel
+# PyQt6
+from cwidgets.pyqt6 import CLineEdit, CLabel
 
-    # إنشاء الحقل أولاً لـ buddy
-    self.edit = CLineEdit(self)
-    self.lbl  = CLabel("الاسم:", self, self.edit)
-    layout.addWidget(self.lbl)
-    layout.addWidget(self.edit)
+self.edit = CLineEdit(self)
+self.lbl  = CLabel("الاسم:", self, self.edit)
+layout.addWidget(self.lbl)
+layout.addWidget(self.edit)
 
-    # مع نص مبدئي 
-    self.edit = CLineEdit(self, "القاهرة")
+# مع نص أولي
+self.edit = CLineEdit(self, "القاهرة")
 
-    # مع نص إرشادي placeholder
-    self.edit = CLineEdit(self, placeholderText="أدخل اسمك...")
+# مع نص نائب
+self.edit = CLineEdit(self, placeholderText="أدخل اسمك...")
 
-    # إشارة validated
-    self.edit.validated.connect(self.on_validated)
+# إشارة validated
+self.edit.validated.connect(self.on_validated)
 
-    def on_validated(self, text: str) -> None:
-        text = self.edit.text()  # استرداد أصلي Qt
-        print(text)
-
-    # إظهار / إخفاء — أصلي Qt
-    self.edit.hide()
-    self.edit.show()
-
+def on_validated(self, text: str) -> None:
+    print(text)
 
 ## CComboBox
 
 ### التعريف
-CComboBox هو قائمة منسدلة متوافقة، يحل محل QComboBox.
+CComboBox هي قائمة منسدلة يمكن الوصول إليها تحل محل QComboBox.
 
 ### لماذا؟
-- QComboBox الأصلي يتم التفعيل داخله بواسطة الأسهم .
-و هذا يمثل مشكلة للمكفوفين الذين يتنقلون بالإسهم .
+يقوم QComboBox بتفعيل العنصر أثناء التنقل باستخدام مفاتيح الأسهم —
+مشكل للمستخدمين المكفوفين.
 
 ### الحل
-فصل صريح بين التنقل والتفعيل .
-مع المحافظة على التوافقية حتى في حالة تعطيل القائمة .
+فصل صريح بين التنقل (الأسهم) والتفعيل (Enter/Space).
+الحفاظ على إمكانية الوصول لـ NVDA في الوضع المعطل.
 
 ### الميزات
-- التنقل الحر: ↑ ↓ للتنقل بدون تفعيل .
-- التفعيل الصريح: Enter، Return، Space → بواسطة إشارة validated.
-- الإشارة cleared: تُصدر عندما يتحقق المستخدم من قائمة فارغة.
-- التعطيل المتاح: يعلن NVDA "غير متاح".
-- العنوان عبر CLabel مع buddy — لا يُنصح باستخدام setAccessibleName لأنه يحل محل الملصق.
+- التنقل الحر: ↑↓ دون تفعيل.
+- التفعيل الصريح: Enter، Backspace، Space → إشارة `validated`.
+- الإشارة `cleared`: تُرسل إذا تفاعل المستخدم مع قائمة فارغة.
+- التعطيل المتاح: NVDA يعلن "غير متاح".
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CComboBox, CLabel, CMessageBox, CButton
-    # PyQt6
-    from cwidgets.pyqt6 import CComboBox, CLabel, CMessageBox, CButton
+# PySide6
+from cwidgets.pyside6 import CComboBox, CLabel, CMessageBox
+# PyQt6
+from cwidgets.pyqt6 import CComboBox, CLabel, CMessageBox
 
-    # إنشاء القائمة أولاً لـ buddy
-    self.combo = CComboBox(self)
-    self.combo.addItems(["مصر", "تونس", "المغرب"])
-    self.lbl = CLabel("قائمة الدول:", self, self.combo)
-    layout.addWidget(self.lbl)
-    layout.addWidget(self.combo)
+self.combo = CComboBox(self)
+self.combo.addItems(["مصر", "تونس", "المغرب"])
+self.lbl = CLabel("الدولة:", self, self.combo)
+layout.addWidget(self.lbl)
+layout.addWidget(self.combo)
 
-    self.combo.validated.connect(self.on_selection)
-    self.combo.cleared.connect(self.on_cleared)
+self.combo.validated.connect(self.on_selection)
+self.combo.cleared.connect(self.on_cleared)
 
-    # زر يفرغ القائمة
-    self.btn_clear = CButton("تفريغ", self)
-    self.btn_clear.clicked.connect(self.combo.clear)
+def on_selection(self) -> None:
+    text  = self.combo.currentText()
+    index = self.combo.currentIndex()
+    CMessageBox.information(self, "اختيار", f"الدولة: {text}")
 
-    def on_selection(self) -> None:
-        text  = self.combo.currentText()
-        index = self.combo.currentIndex()
-        CMessageBox.information(self, "التحديد", f"الدولة: {text}")
+def on_cleared(self) -> None:
+    CMessageBox.warning(self, "تحذير", "القائمة فارغة.")
 
-    def on_cleared(self) -> None:
-        CMessageBox.warning(self, "تحذير", "لا توجد عناصر متاحة في القائمة.")
-
-    # تعطيل / إعادة تفعيل
-    self.combo.setEnabled(False)
-    self.combo.setEnabled(True)
+# تعطيل / إعادة تفعيل
+self.combo.setEnabled(False)
+self.combo.setEnabled(True)
 
 ## CListWidget
 
 ### التعريف
-CListWidget هي قائمة متوافقة ، تحل محل QListWidget.
+CListWidget هي قائمة يمكن الوصول إليها تحل محل QListWidget.
 
 ### لماذا؟
-QListWidget الأصلي يتم التفعيل داخله فورًا عند التنقل باستخدام الأسهم.
-و هذا يمثل عائقا للمكفوفين و تعطيل هذا التفعيل بالأسهم يتطلب كتابة أسطر كودية إضافية .
+يقوم QListWidget بتفعيل العنصر فورًا أثناء التنقل —
+عائق للمستخدمين المكفوفين.
+
 ### الحل
-- فصل بين التنقل والتفعيل .
--الحفاظ على إمكانية الوصول في وضع التعطيل.
+فصل بين التنقل والتفعيل. إمكانية الوصول لـ NVDA في الوضع المعطل.
 
 ### الميزات
-- التنقل الحر: ↑ ↓ للتنقل بدون تفعيل .
-- التفعيل الصريح: Enter، Return، Space.
-- في حالة التعطيل : يعلن NVDA "غير متاح".
-- العنوان عبر CLabel مع buddy — لا يُنصح باستخدام setAccessibleName لأنه يحل محل الملصق.
+- التنقل الحر: ↑↓ دون تفعيل.
+- التفعيل الصريح: Enter، Backspace، Space.
+- التعطيل المتاح: NVDA يعلن "غير متاح".
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CListWidget, CLabel
-    # PyQt6
-    from cwidgets.pyqt6 import CListWidget, CLabel
+# PySide6
+from cwidgets.pyside6 import CListWidget, CLabel
+# PyQt6
+from cwidgets.pyqt6 import CListWidget, CLabel
 
-    # إنشاء القائمة
-    self.list = CListWidget(self)
-    self.list.addItems(["العراق", "السعودية", "الكويت"])
-    self.lbl = CLabel("قائمة الدول:", self, self.list)
-    layout.addWidget(self.lbl)
-    layout.addWidget(self.list)
+self.liste = CListWidget(self)
+self.liste.addItems(["العراق", "السعودية", "الكويت"])
+self.lbl = CLabel("الدولة:", self, self.liste)
+layout.addWidget(self.lbl)
+layout.addWidget(self.liste)
 
-    # إشارة أصلية Qt — مطابقة لـ QListWidget
-    self.liste.itemActivated.connect(self.on_item)
+self.liste.itemActivated.connect(self.on_item)
 
-    def on_item(self, item) -> None:
-        text = item.text()
-        row  = self.liste.currentRow()
-        print(row, text)
+def on_item(self, item) -> None:
+    text = item.text()
+    row  = self.liste.currentRow()
+    print(row, text)
 
-    # تعطيل / إعادة تفعيل
-    self.liste.setEnabled(False)
-    self.liste.setEnabled(True)
+# تعطيل / إعادة تفعيل
+self.liste.setEnabled(False)
+self.liste.setEnabled(True)
 
-    # تفريغ — أصلي Qt
-    self.liste.clear()
+# إفراغ
+self.liste.clear()
 
 ## CMessageBox
 
 ### التعريف
-CMessageBox هي محاورة رسائل متوافقة.
+CMessageBox هي مربع حوار يمكن الوصول إليه يحل محل QMessageBox.
+
 ### لماذا؟
-QMessageBox الأصلي لا يوفر إغلاقًا تلقائيًا .
-نحتاجه للرسائل التي لا تتطلب تدخلا من المستخدم .
+لا يقدم QMessageBox إغلاقًا تلقائيًا.
 
 ### الحل
-إضافة وضع تغلق فيه الرسالة بعد زمن محدد .
+إضافة وضع مؤقت مع إغلاق تلقائي بعد تأخير.
 
 ### الميزات
-- information: مؤقت أو غير مؤقت — بدون صوت.
-- warning: مؤقت أو غير مؤقت — بدون صوت.
-- critical: دائمًا غير مؤقت + صوت النظام — إغلاق يدوي إلزامي.
+- `information`: مؤقت أو غير مؤقت، بدون صوت.
+- `warning`: مؤقت أو غير مؤقت، بدون صوت.
+- `critical`: دائمًا غير مؤقت + صوت النظام، يتطلب إغلاقًا يدويًا.
 - الإغلاق اليدوي ممكن دائمًا قبل انتهاء المهلة.
 
 ### الاستخدام
 
-    # PySide6
-    from cwidgets.pyside6 import CMessageBox
-    # PyQt6
-    from cwidgets.pyqt6 import CMessageBox
+# PySide6
+from cwidgets.pyside6 import CMessageBox
+# PyQt6
+from cwidgets.pyqt6 import CMessageBox
 
-    # معلومات غير مؤقتة
-    CMessageBox.information(self, "نجاح", "تم حفظ الملف.")
+# معلومات
+CMessageBox.information(self, "نجاح", "تم حفظ الملف.")
+CMessageBox.information(self, "نجاح", "تم حفظ الملف.", timeout=3000)
 
-    # معلومات مؤقتة — إغلاق تلقائي بعد 3 ثوانٍ
-    CMessageBox.information(self, "نجاح", "تم حفظ الملف.", timeout=3000)
+# تحذير
+CMessageBox.warning(self, "تحذير", "مساحة القرص غير كافية.")
+CMessageBox.warning(self, "تحذير", "اتصال غير مستقر.", timeout=4000)
 
-    # تحذير غير مؤقت
-    CMessageBox.warning(self, "تحذير", "مساحة القرص غير كافية.")
+# خطأ — إغلاق يدوي + صوت
+CMessageBox.critical(self, "خطأ", "الملف غير موجود.")
 
-    # تحذير مؤقت
-    CMessageBox.warning(self, "تحذير", "الاتصال غير مستقر.", timeout=4000)
+## الممارسات الجيدة
 
-    # خطأ — غير مؤقت + صوت — إغلاق يدوي إلزامي
-    CMessageBox.critical(self, "خطأ", "الملف غير موجود.")
+**1 — العناوين: استخدم دائمًا CLabel مع buddy**
+# غير موصى به
+self.combo.setAccessibleName("...")
 
-    # يُنصح باستخدام المهلة فقط لـ information و warning
-    # المهلة غير متاحة لـ critical
+# صحيح
+self.lbl = CLabel("الدولة:", self, self.combo)
 
-## أفضل الممارسات
+**2 — التعطيل**: `setEnabled(False)` متاح على جميع مكونات C*.
 
-1 — العناوين: استخدم دائمًا CLabel مع buddy .
+**3 — التفعيل**
+- CLineEdit و CComboBox → إشارة `validated`
+- CListWidget → إشارة `itemActivated`
 
-    # غير منصوح به — يحل محل label
-    self.combo.setAccessibleName("...")
+**4 — ترتيب الإنشاء مع buddy**: قم دائمًا بإنشاء العنصر قبل CLabel الخاص به.
+self.combo = CComboBox(self)
+self.lbl   = CLabel("الدولة:", self, self.combo)
 
-    # صحيح
-    self.lbl = CLabel("قائمة الدول:", self, self.combo)
-
-2 — التعطيل: setEnabled(False) متاح افتراضيًا على جميع المكونات C*.
-
-3 — التفعيل:
-- CLineEdit و CComboBox → إشارة validated
-- CListWidget → إشارة أصلية Qt itemActivated
-
-4 — ترتيب الإنشاء مع buddy: قم دائمًا بإنشاء العنصر قبل CLabel الخاص به.
-
-    # صحيح — العنصر يُنشأ قبل الملصق
-    self.combo = CComboBox(self)
-    self.lbl   = CLabel("الدولة:", self, self.combo)
-
-## متطلبات التشغيل 
+## متطلبات النظام
 
 - PySide6 أو PyQt6
-- pywin32 — فقط لـ CTextEdit (دمج Win32 RichEdit)
+- pywin32 — فقط لـ CTextEdit (تكامل Win32 RichEdit)
+- Windows فقط لـ CTextEdit
 
-المقدمة من المكتبة:
-- validate_parent — التحقق المنتظم من النافذة parent
-- logger — تسجيل الأخطاء (الوحدة "cwidgets")
+## القيود
 
-##حدود المكتبة
+- CTextEdit: Windows فقط (يعتمد على Win32 RichEdit).
+- CComboBox و CListWidget: لا يُنصح بـ `setAccessibleName` — يستبدل CLabel buddy.
+- CButton: ظل رمادي عبر stylesheet — لا يقوم Windows تلقائيًا
+  بتظليل الزر النشط لـ NVDA.
 
-- CTextEdit يعتمد على Win32 RichEdit — متوافق مع Windows فقط.
-- لا يُنصح باستخدام setAccessibleName مع CComboBox و CListWidget لأنه يحل محل buddy CLabel.
-- CButton: التظليل الرمادي عبر stylesheet — Windows لا يقوم بتظليل الزر تلقائيًا عند الحفاظ عليه نشطًا لـ NVDA.
+## المطور
 
-## المطوّر :
-محمد الهادي بالطيب)تونس(
-للتواصل و التفاعل :
-البريد الإلكتروني : hedidouz@gmail.com 
-تاريخ تصميم المكتبة : ماي 2026 .
-
+محمد الهادي بتايب (تونس)
+البريد الإلكتروني: hedidouz@gmail.com
+تاريخ التصميم: مايو 2026
 
 ## الخاتمة
 
-يهدف هذا المشروع إلى جعل تطبيقات Qt متاحة بنسبة 100% للمطورين والمستخدمين المكفوفين، دون التضحية بالإنتاجية أو عادات مطوري Qt.
+تهدف CWidgets إلى جعل تطبيقات Qt متوافقة بنسبة 100% مع المطورين
+والمستخدمين المكفوفين، دون التضحية بالإنتاجية أو عادات Qt.
