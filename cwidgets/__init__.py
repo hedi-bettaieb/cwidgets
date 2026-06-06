@@ -14,7 +14,7 @@ from cwidgets.ctextedit_api import CTEXTEDIT_API, get_api_count
 
 __author__ = "Mohamed Hédi Bettaieb (Tunisia)"
 __email__ = "hedidouz@gmail.com"
-__version__ = "0.1.3"
+__version__ = "0.1.3.post1"
 __license__ = "GPL-3.0-or-later"
 
 # ------------------------------------------------------------------ #

@@ -1,4 +1,4 @@
-# Guide de l'utilisateur - Bibliothèque CWidgets V0.1.3
+# Guide de l'utilisateur - Bibliothèque CWidgets V0.1.3.post1
 
 ## Introduction
 

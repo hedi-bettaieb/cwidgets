@@ -38,7 +38,7 @@ from cwidgets.pyqt6.widgets import (
 # --------------------------------------------------
 
 # Version actuelle de la bibliothèque
-__version__ = "0.1.3"
+__version__ = "0.1.3.post1"
 
 # --------------------------------------------------
 
